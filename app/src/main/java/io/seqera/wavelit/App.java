@@ -80,12 +80,15 @@ public class App implements Runnable {
     @Option(names = {"--context"}, description = "Directory path where the build context is stored.")
     private String contextDir;
 
-
     @Option(names = {"--layer"})
     private List<String> layerDirs;
 
+
     @Option(names = {"--config-env"}, description = "Environment variables for wave container", parameterConsumer = KeyValueValidator.class)
     private List<String> environment;
+
+    @Option(names = {"--config-entrypoint"}, description = "Overwrite the default ENTRYPOINT of the image.")
+    private String entrypoint;
 
     private BuildContext buildContext;
 
@@ -169,8 +172,7 @@ public class App implements Runnable {
                 .withTowerAccessToken(towerToken)
                 .withTowerWorkspaceId(towerWorkspaceId)
                 .withTowerEndpoint(towerEndpoint)
-                .withFreezeMode(freeze)
-                ;
+                .withFreezeMode(freeze);
     }
 
     @Override
@@ -236,10 +238,13 @@ public class App implements Runnable {
 
     protected ContainerConfig prepareConfig() {
         final ContainerConfig result = new ContainerConfig();
-        if( layerDirs==null || layerDirs.size()==0 )
-            return null;
 
-        for( String it : layerDirs ) {
+        // add the entrypoint if specified
+        if( entrypoint!=null )
+            result.entrypoint = List.of(entrypoint);
+
+        // add the layers to the resulting config if specified
+        if( layerDirs!=null ) for( String it : layerDirs ) {
             final Path loc = Path.of(it);
             if( !Files.isDirectory(loc) ) throw new IllegalCliArgumentException("Not a valid container layer directory - offering path: "+loc);
             ContainerLayer layer;
@@ -261,7 +266,9 @@ public class App implements Runnable {
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
         result.env = environment;
-        // assign the result
-        return result;
+
+        // return the result
+        return !result.empty() ? result : null;
+
     }
 }
