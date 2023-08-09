@@ -31,6 +31,7 @@ import io.seqera.wave.api.SubmitContainerTokenResponse;
 import io.seqera.wave.util.Packer;
 import io.seqera.wavelit.exception.IllegalCliArgumentException;
 import io.seqera.wavelit.util.CliVersionProvider;
+import io.seqera.wavelit.util.KeyValueValidator;
 import picocli.CommandLine;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static picocli.CommandLine.Command;
@@ -82,6 +83,9 @@ public class App implements Runnable {
 
     @Option(names = {"--layer"})
     private List<String> layerDirs;
+
+    @Option(names = {"--config-env"}, description = "Environment variables for wave container", parameterConsumer = KeyValueValidator.class)
+    private List<String> environment;
 
     private BuildContext buildContext;
 
@@ -256,6 +260,7 @@ public class App implements Runnable {
         if( size>=10 * _1MB )
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
+        result.env = environment;
         // assign the result
         return result;
     }
