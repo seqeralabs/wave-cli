@@ -88,6 +88,9 @@ public class App implements Runnable {
     @Option(names = {"--config-entrypoint"}, description = "Overwrite the default ENTRYPOINT of the image.")
     private String entrypoint;
 
+    @Option(names = {"--config-working-dir"}, description = "Overwrite the default WORKDIR of the image.")
+    private String workingDir;
+
     private BuildContext buildContext;
 
     private ContainerConfig containerConfig;
@@ -243,8 +246,14 @@ public class App implements Runnable {
 
         // add the command if specified
         if( command != null ){
-            if( "".equals(command) ) throw new IllegalCliArgumentException("The specified command is an empty string");
+            if( "".equals(command.trim()) ) throw new IllegalCliArgumentException("The specified command is an empty string");
             result.cmd = List.of(command);
+        }
+
+        //add the working directory if specified
+        if(workingDir != null){
+            if( "".equals(workingDir.trim()) ) throw new IllegalCliArgumentException("The specified working directory is an empty string");
+            result.workingDir = workingDir;
         }
 
         // add the layers to the resulting config if specified

@@ -82,4 +82,33 @@ class AppTest extends Specification {
         thrown(IllegalCliArgumentException)
 
     }
+
+    def "test valid working directory"() {
+        given:
+        def app = new App()
+        String[] args = ["--config-working-dir", "/work/dir"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        then:
+        app.@workingDir == "/work/dir"
+
+        when:
+        def config = app.prepareConfig()
+        then:
+        config == new ContainerConfig(workingDir: '/work/dir')
+    }
+
+    def "test invalid working directory"() {
+        given:
+        def app = new App()
+        String[] args = ["--config-working-dir", "  "]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        app.prepareConfig()
+        then:
+        thrown(IllegalCliArgumentException)
+
+    }
 }
