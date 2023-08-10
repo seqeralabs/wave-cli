@@ -82,4 +82,34 @@ class AppTest extends Specification {
         thrown(IllegalCliArgumentException)
 
     }
+
+    def "test valid environment"() {
+        given:
+        def app = new App()
+        String[] args = ["--config-env", "var1=value1","--config-env", "var2=value2"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        then:
+        app.@environment[0] == "var1=value1"
+        app.@environment[1] == "var2=value2"
+
+        when:
+        def config = app.prepareConfig()
+        then:
+        config == new ContainerConfig(env: ['var1=value1', 'var2=value2'])
+    }
+
+    def "test invalid environment"() {
+        given:
+        def app = new App()
+        String[] args = ["--config-env", "var"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        app.prepareConfig()
+        then:
+        thrown(IllegalCliArgumentException)
+
+    }
 }

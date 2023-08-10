@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.seqera.wave.api.BuildContext;
 import io.seqera.wave.api.ContainerConfig;
@@ -31,7 +32,6 @@ import io.seqera.wave.api.SubmitContainerTokenResponse;
 import io.seqera.wave.util.Packer;
 import io.seqera.wavelit.exception.IllegalCliArgumentException;
 import io.seqera.wavelit.util.CliVersionProvider;
-import io.seqera.wavelit.util.KeyValueValidator;
 import picocli.CommandLine;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static picocli.CommandLine.Command;
@@ -83,7 +83,7 @@ public class App implements Runnable {
     @Option(names = {"--layer"})
     private List<String> layerDirs;
 
-    @Option(names = {"--config-env"}, description = "Environment variables for wave container", parameterConsumer = KeyValueValidator.class)
+    @Option(names = {"--config-env"}, description = "Environment variables for wave container, values should be in variableName=value format")
     private List<String> environment;
 
     @Option(names = {"--config-cmd"}, description = "Overwrite the default CMD (command) of the image.")
@@ -249,6 +249,15 @@ public class App implements Runnable {
         if( command != null ){
             if( "".equals(command) ) throw new IllegalCliArgumentException("The specified command is an empty string");
             result.cmd = List.of(command);
+        }
+
+        //add environment variables if specified
+        if(environment!=null){
+            List<String> invalidEnv = environment.stream().filter(e->!e.contains("=")).collect(Collectors.toList());
+            if(!invalidEnv.isEmpty()){
+                throw new IllegalCliArgumentException("Some environment variables are not in variableName=value format: "+invalidEnv);
+            }
+            result.env = environment;
         }
 
         // add the layers to the resulting config if specified
