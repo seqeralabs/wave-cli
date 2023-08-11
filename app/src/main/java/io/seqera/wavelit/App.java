@@ -30,6 +30,7 @@ import io.seqera.wave.api.SubmitContainerTokenRequest;
 import io.seqera.wave.api.SubmitContainerTokenResponse;
 import io.seqera.wave.util.Packer;
 import io.seqera.wavelit.exception.IllegalCliArgumentException;
+import io.seqera.wavelit.util.ConfigFileProcessor;
 import io.seqera.wavelit.util.CliVersionProvider;
 import picocli.CommandLine;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -87,6 +88,9 @@ public class App implements Runnable {
 
     @Option(names = {"--config-entrypoint"}, description = "Overwrite the default ENTRYPOINT of the image.")
     private String entrypoint;
+
+    @Option(names = {"--config-file"}, description = "Configuration file in JSON format to overwrite the default configuration of the image.")
+    private String configFile;
 
     private BuildContext buildContext;
 
@@ -235,7 +239,17 @@ public class App implements Runnable {
     }
 
     protected ContainerConfig prepareConfig() {
-        final ContainerConfig result = new ContainerConfig();
+        ContainerConfig result = new ContainerConfig();
+
+        // add configuration from config file if specified
+        if( configFile != null ){
+            if( "".equals(configFile.trim()) ) throw new IllegalCliArgumentException("The specified config file is an empty string");
+            try {
+                result = ConfigFileProcessor.process(configFile);
+            } catch (IOException e) {
+                throw new RuntimeException("Unexpected error while setting the configuration from config file: "+e);
+            }
+        }
 
         // add the entrypoint if specified
         if( entrypoint!=null )

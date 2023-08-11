@@ -1,0 +1,12 @@
+{
+  "entrypoint": [ "entrypoint" ],
+  "layers": [
+    {
+      "location": "https://location",
+      "gzipDigest": "sha256:gzipDigest",
+      "gzipSize": 100,
+      "tarDigest": "sha256:tarDigest",
+      "skipHashing": true
+    }
+  ]
+}
