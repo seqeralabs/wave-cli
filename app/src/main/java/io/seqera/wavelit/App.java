@@ -14,12 +14,15 @@
  */
 package io.seqera.wavelit;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +32,8 @@ import io.seqera.wave.api.ContainerConfig;
 import io.seqera.wave.api.ContainerLayer;
 import io.seqera.wave.api.SubmitContainerTokenRequest;
 import io.seqera.wave.api.SubmitContainerTokenResponse;
+import io.seqera.wave.config.CondaOpts;
+import io.seqera.wave.util.DockerHelper;
 import io.seqera.wave.util.Packer;
 import io.seqera.wavelit.exception.IllegalCliArgumentException;
 import io.seqera.wavelit.util.CliVersionProvider;
@@ -38,7 +43,7 @@ import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Option;
 
 /**
- * Wavelit entrypoint class
+ * Wavelit main class
  */
 @Command(name = "wavelit", description = "Wave command line tool", mixinStandardHelpOptions = true, versionProvider = CliVersionProvider.class)
 public class App implements Runnable {
@@ -48,7 +53,7 @@ public class App implements Runnable {
     @Option(names = {"-i", "--image"}, description = "Container image name to be provisioned.")
     private String image;
 
-    @Option(names = {"-c", "--containerfile"}, description = "Container file (i.e. Dockerfile) to be used to build the image.")
+    @Option(names = {"-f", "--containerfile"}, description = "Container file (i.e. Dockerfile) to be used to build the image.")
     private String containerFile;
 
     @Option(names = {"--tower-token"}, description = "Tower service access token.")
@@ -92,6 +97,21 @@ public class App implements Runnable {
     @Option(names = {"--config-entrypoint"}, description = "Overwrite the default ENTRYPOINT of the image.")
     private String entrypoint;
 
+    @Option(names = {"--conda-file"}, description = "A Conda file used to build the container.")
+    private String condaFile;
+
+    @Option(names = {"--conda-package"}, description = "One or more Conda package used to build the container.")
+    private List<String> condaPackages;
+
+    @Option(names = {"--conda-base-image"}, description = "Conda base image used to to build the container (default: ${DEFAULT-VALUE}).")
+    private String condaBaseImage = CondaOpts.DEFAULT_MAMBA_IMAGE;
+
+    @Option(names = {"--conda-run-command"}, description = "Dockerfile RUN commands used to build the container.")
+    private List<String> condaRunCommands;
+
+    @Option(names = {"--conda-channels"}, description = "Conda channels used to build the container (default: ${DEFAULT-VALUE}).")
+    private String condaChannels = "seqera,bioconda,conda-forge,defaults";
+
     private BuildContext buildContext;
 
     private ContainerConfig containerConfig;
@@ -134,7 +154,7 @@ public class App implements Runnable {
         if( !isEmpty(image) && !isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Argument --image and --containerfile conflict each other - Specify an image name or a container file for the container to be provisioned");
 
-        if( isEmpty(image) && isEmpty(containerFile) )
+        if( isEmpty(image) && isEmpty(containerFile) && isEmpty(condaFile) && condaPackages==null )
             throw new IllegalCliArgumentException("Provide either a image name or a container file for the Wave container to be provisioned");
 
         if( freeze && isEmpty(buildRepository) )
@@ -142,6 +162,22 @@ public class App implements Runnable {
 
         if( isEmpty(towerToken) && !isEmpty(buildRepository) )
             throw new IllegalCliArgumentException("Specify the Tower access token required to authenticate the access to the build repository either by using the --tower-token option or the TOWER_ACCESS_TOKEN environment variable");
+
+        if( !isEmpty(condaFile) && condaPackages!=null )
+            throw new IllegalCliArgumentException("Option --conda-file and --conda-package conflict each other");
+
+        if( !isEmpty(condaFile) && !isEmpty(image) )
+            throw new IllegalCliArgumentException("Option --conda-file and --image conflict each other");
+
+        if( !isEmpty(condaFile) && !isEmpty(containerFile) )
+            throw new IllegalCliArgumentException("Option --conda-file and --containerfile conflict each other");
+
+        if( condaPackages!=null && !isEmpty(image) )
+            throw new IllegalCliArgumentException("Option --conda-package and --image conflict each other");
+
+        if( condaPackages!=null && !isEmpty(containerFile) )
+            throw new IllegalCliArgumentException("Option --conda-package and --containerfile conflict each other");
+
 
         if( !isEmpty(contextDir) ) {
             // check that a container file has been provided
@@ -164,7 +200,8 @@ public class App implements Runnable {
     protected SubmitContainerTokenRequest createRequest() {
         return new SubmitContainerTokenRequest()
                 .withContainerImage(image)
-                .withContainerFile(encodeBase64(containerFile))
+                .withContainerFile(containerFileBase64())
+                .withCondaFile(condaFileBase64())
                 .withContainerPlatform(platform)
                 .withTimestamp(OffsetDateTime.now())
                 .withBuildRepository(buildRepository)
@@ -201,26 +238,34 @@ public class App implements Runnable {
                 : resp.targetImage );
     }
 
-    private String encodeBase64(String value) {
+    private String encodePathBase64(String value) {
         try {
             if( isEmpty(value) )
                 return null;
-            // check if it's a file path
-            if( value.startsWith("/") || value.startsWith("./") ) {
-                return Base64.getEncoder().encodeToString(Files.readAllBytes(Path.of(value)));
-            }
+            // read the text from a URI resource and encode to base64
             if( value.startsWith("file:/") || value.startsWith("http://") || value.startsWith("https://")) {
                 return Base64.getEncoder().encodeToString(Files.readAllBytes(Path.of(new URI(value))));
             }
-            // parse a plain dockerfile string
-            return Base64.getEncoder().encodeToString(value.getBytes());
+            // read the text from a local file and encode to base64
+            return Base64.getEncoder().encodeToString(Files.readAllBytes(Path.of(value)));
         }
         catch (URISyntaxException e) {
             throw new IllegalCliArgumentException("Invalid container file URI path - offending value: " + value, e);
         }
-        catch (IOException e) {
-            throw new IllegalCliArgumentException("Unable to read container file - reason: " + e.getMessage(), e);
+        catch (NoSuchFileException | FileNotFoundException e) {
+            throw new IllegalCliArgumentException("File not found: " + value, e);
         }
+        catch (IOException e) {
+            String msg = String.format("Unable to read resource: %s - reason: %s" + value, e.getMessage());
+            throw new IllegalCliArgumentException(msg, e);
+        }
+    }
+
+    private String encodeStringBase64(String value) {
+        if( isEmpty(value) )
+            return null;
+        else
+            return Base64.getEncoder().encodeToString(value.getBytes());
     }
 
     protected BuildContext prepareContext()  {
@@ -287,5 +332,29 @@ public class App implements Runnable {
         // return the result
         return !result.empty() ? result : null;
 
+    }
+
+    protected String containerFileBase64() {
+        if( !isEmpty(containerFile) ) {
+            return encodePathBase64(containerFile);
+        }
+
+        if( !isEmpty(condaFile) || condaPackages!=null ) {
+            final CondaOpts opts = new CondaOpts()
+                    .withMambaImage(condaBaseImage)
+                    .withCommands(condaRunCommands);
+            final String result = condaPackages!=null
+                    ? DockerHelper.condaPackagesToDockerFile(condaPackages.stream().collect(Collectors.joining(" ")), Arrays.asList(condaChannels.split(",")), opts)
+                    : DockerHelper.condaFileToDockerFile(opts);
+            return encodeStringBase64(result);
+        }
+
+        return null;
+    }
+
+    protected String condaFileBase64() {
+        if( isEmpty(condaFile) )
+            return null;
+        return encodePathBase64(condaFile);
     }
 }
