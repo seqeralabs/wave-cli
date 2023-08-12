@@ -1,6 +1,6 @@
 package io.seqera.wavelit
 
-import java.nio.file.Files
+
 import java.time.Instant
 
 import io.seqera.wave.api.ContainerConfig
@@ -107,13 +107,14 @@ class AppTest extends Specification {
     def "test invalid environment"() {
         given:
         def app = new App()
-        String[] args = ["--config-env", "var"]
+        String[] args = ["--config-env", "VAR"]
 
         when:
         new CommandLine(app).parseArgs(args)
         app.prepareConfig()
         then:
-        thrown(IllegalCliArgumentException)
+        def e = thrown(IllegalCliArgumentException)
+        e.message == 'Invalid environment variable syntax - offending value: VAR'
 
     }
 

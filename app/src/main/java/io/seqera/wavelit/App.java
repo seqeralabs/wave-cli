@@ -51,6 +51,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Option;
 
+import static io.seqera.wavelit.util.Checkers.isEnvVar;
+
 /**
  * Wavelit main class
  */
@@ -100,7 +102,7 @@ public class App implements Runnable {
     @Option(names = {"--layer"}, paramLabel = "''", description = "Directory path where a layer content is stored e.g. /some/layer/path")
     private List<String> layerDirs;
 
-    @Option(names = {"--config-env"}, paramLabel = "''",  description = "Environment variables for wave container, values should be in variableName=value format")
+    @Option(names = {"--config-env"}, paramLabel = "''",  description = "Overwrite the environment of the image e.g. NAME=VALUE")
     private List<String> environment;
 
     @Option(names = {"--config-cmd"}, paramLabel = "''", description = "Overwrite the default CMD (command) of the image.")
@@ -391,10 +393,9 @@ public class App implements Runnable {
         }
 
         //add environment variables if specified
-        if(environment!=null){
-            List<String> invalidEnv = environment.stream().filter(e->!e.contains("=")).collect(Collectors.toList());
-            if(!invalidEnv.isEmpty()){
-                throw new IllegalCliArgumentException("Some environment variables are not in variableName=value format: "+invalidEnv);
+        if( environment!=null ) {
+            for( String it : environment ) {
+                if( !isEnvVar(it) ) throw new IllegalCliArgumentException("Invalid environment variable syntax - offending value: " + it);
             }
             result.env = environment;
         }
