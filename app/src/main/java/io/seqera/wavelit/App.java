@@ -16,8 +16,10 @@ package io.seqera.wavelit;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -39,7 +41,6 @@ import io.seqera.wave.config.SpackOpts;
 import io.seqera.wave.util.DockerHelper;
 import io.seqera.wave.util.Packer;
 import io.seqera.wavelit.exception.IllegalCliArgumentException;
-import io.seqera.wavelit.util.ConfigFileProcessor;
 import io.seqera.wavelit.json.JsonHelper;
 import io.seqera.wavelit.util.BuildInfo;
 import io.seqera.wavelit.util.CliVersionProvider;
@@ -48,11 +49,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import static io.seqera.wave.util.DockerHelper.addPackagesToSpackFile;
 import static io.seqera.wave.util.DockerHelper.spackPackagesToSpackFile;
+import static io.seqera.wavelit.util.Checkers.isEnvVar;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Option;
-
-import static io.seqera.wavelit.util.Checkers.isEnvVar;
 
 /**
  * Wavelit main class
@@ -344,7 +344,9 @@ public class App implements Runnable {
                 return null;
             // read the text from a URI resource and encode to base64
             if( value.startsWith("file:/") || value.startsWith("http://") || value.startsWith("https://")) {
-                return Base64.getEncoder().encodeToString(Files.readAllBytes(Path.of(new URI(value))));
+                try(InputStream stream=new URI(value).toURL().openStream()) {
+                    return Base64.getEncoder().encodeToString(stream.readAllBytes());
+                }
             }
             // read the text from a local file and encode to base64
             return Base64.getEncoder().encodeToString(Files.readAllBytes(Path.of(value)));
@@ -389,11 +391,7 @@ public class App implements Runnable {
         // add configuration from config file if specified
         if( configFile != null ){
             if( "".equals(configFile.trim()) ) throw new IllegalCliArgumentException("The specified config file is an empty string");
-            try {
-                result = ConfigFileProcessor.process(configFile);
-            } catch (IOException e) {
-                throw new RuntimeException("Unexpected error while setting the configuration from config file: "+e);
-            }
+            result = readConfig(configFile);
         }
 
         // add the entrypoint if specified
@@ -504,4 +502,25 @@ public class App implements Runnable {
                 ? resp.containerImage
                 : resp.targetImage;
     }
+
+    protected ContainerConfig readConfig(String path) {
+        try {
+            if( path.startsWith("http://") || path.startsWith("https://") || path.startsWith("file:/")) {
+                try (InputStream stream=new URL(path).openStream()) {
+                    return JsonHelper.fromJson(new String(stream.readAllBytes()), ContainerConfig.class);
+                }
+            }
+            else {
+                return JsonHelper.fromJson(Files.readString(Path.of(path)), ContainerConfig.class);
+            }
+        }
+        catch (FileNotFoundException | NoSuchFileException e) {
+            throw new IllegalCliArgumentException("Invalid container config file - File not found: " + path);
+        }
+        catch (IOException e) {
+            String msg = String.format("Unable to read container config file: %s - Cause: %s", path, e.getMessage());
+            throw new IllegalCliArgumentException(msg, e);
+        }
+    }
+
 }
