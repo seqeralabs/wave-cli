@@ -427,11 +427,8 @@ public class App implements Runnable {
         if( size>=10 * _1MB )
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
-        result.env = environment;
-
         // return the result
         return !result.empty() ? result : null;
-
     }
 
     protected String containerFileBase64() {
