@@ -14,19 +14,16 @@
  */
 package io.seqera.wavelit;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
@@ -375,7 +372,20 @@ public class App implements Runnable {
             return null;
         BuildContext result = null;
         try {
-            result = BuildContext.of(new Packer().layer(Path.of(contextDir)));
+            //check for .dockerignore file in context directory
+            Path dockerIgnorePath = Paths.get(contextDir, ".dockerignore");
+            if (Files.exists(dockerIgnorePath)){
+                List<String> dockerIgnorePatterns = new ArrayList<>();
+                dockerIgnorePatterns = Files.readAllLines(dockerIgnorePath);
+
+                Set<String> igrnoredPatterns = dockerIgnorePatterns.stream()
+                        .filter(pattern -> !pattern.trim().isEmpty() && !pattern.trim().startsWith("#"))
+                        .collect(Collectors.toSet());
+
+               result = BuildContext.of(new Packer().layer(Path.of(contextDir), igrnoredPatterns));
+            }else{
+                result = BuildContext.of(new Packer().layer(Path.of(contextDir)));
+            }
         }
         catch (IOException e) {
             throw new RuntimeException("Unexpected error while preparing build context - cause: "+e.getMessage(), e);
