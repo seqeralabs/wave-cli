@@ -14,7 +14,6 @@
  */
 package io.seqera.wavelit;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -377,12 +376,13 @@ public class App implements Runnable {
             if (Files.exists(dockerIgnorePath)){
                 List<String> dockerIgnorePatterns = new ArrayList<>();
                 dockerIgnorePatterns = Files.readAllLines(dockerIgnorePath);
-
-                Set<String> igrnoredPatterns = dockerIgnorePatterns.stream()
-                        .filter(pattern -> !pattern.trim().isEmpty() && !pattern.trim().startsWith("#"))
-                        .collect(Collectors.toSet());
-
-               result = BuildContext.of(new Packer().layer(Path.of(contextDir), igrnoredPatterns));
+                Set<String> ignoredPatterns = new LinkedHashSet<>();
+                for(String pattern: dockerIgnorePatterns){
+                    if(!pattern.trim().isEmpty() && !pattern.trim().startsWith("#")){
+                        ignoredPatterns.add(pattern);
+                    }
+                }
+               result = BuildContext.of(new Packer().layer(Path.of(contextDir), ignoredPatterns));
             }else{
                 result = BuildContext.of(new Packer().layer(Path.of(contextDir)));
             }
