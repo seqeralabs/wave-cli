@@ -107,6 +107,7 @@ class AppCondaOptsTest extends Specification {
                 COPY --chown=$MAMBA_USER:$MAMBA_USER conda.yml /tmp/conda.yml
                 RUN micromamba install -y -n base -f /tmp/conda.yml \\
                     && micromamba clean -a -y
+                USER root
                 '''.stripIndent()
         and:
         new String(req.condaFile.decodeBase64()) == 'MY CONDA FILE'
@@ -132,6 +133,7 @@ class AppCondaOptsTest extends Specification {
                     micromamba install -y -n base -c seqera -c bioconda -c conda-forge -c defaults \\
                     foo \\
                     && micromamba clean -a -y
+                USER root
                 '''.stripIndent()
         and:
         req.condaFile == null
@@ -161,6 +163,7 @@ class AppCondaOptsTest extends Specification {
                     micromamba install -y -n base -c alpha -c beta \\
                     foo bar \\
                     && micromamba clean -a -y
+                USER root
                 RUN one
                 RUN two    
                 '''.stripIndent()
