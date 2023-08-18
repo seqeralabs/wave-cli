@@ -20,11 +20,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Base64;
@@ -164,8 +162,10 @@ public class App implements Runnable {
             final CommandLine cli = new CommandLine(app);
 
             // add examples in help
-            CommandLine.Model.UsageMessageSpec usageMessageSpec = cli.getCommandSpec().usageMessage();
-            usageMessageSpec.header(loadExamples("examples.txt"));
+            cli
+                .getCommandSpec()
+                .usageMessage()
+                .footer(readExamples("usage-examples.txt"));
 
             final CommandLine.ParseResult result = cli.parseArgs(args);
             if( result.matchedArgs().size()==0 || result.isUsageHelpRequested() ) {
@@ -188,17 +188,13 @@ public class App implements Runnable {
         }
     }
 
-    private static String loadExamples(String exampleFile) {
-            try(InputStream inputStream = App.class.getResourceAsStream(exampleFile)) {
-                if (inputStream != null) {
-                    byte[] buffer = new byte[inputStream.available()];
-                    inputStream.read(buffer);
-                    return new String(buffer, StandardCharsets.UTF_8);
-                }
-            } catch (IOException e) {
-                return e.getMessage();
-            }
-        return "nothing";
+    private static String readExamples(String exampleFile) {
+        try(InputStream stream = App.class.getResourceAsStream(exampleFile)) {
+            return new String(stream.readAllBytes());
+        }
+        catch (Exception e) {
+            throw new IllegalStateException("Unable to read usge examples", e);
+        }
     }
 
     protected void setLogLevel() {
