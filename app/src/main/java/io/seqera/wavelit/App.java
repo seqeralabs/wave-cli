@@ -20,9 +20,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Base64;
@@ -57,7 +59,11 @@ import static picocli.CommandLine.Option;
 /**
  * Wavelit main class
  */
-@Command(name = "wavelit", description = "Wave command line tool", mixinStandardHelpOptions = true, versionProvider = CliVersionProvider.class, usageHelpAutoWidth = true)
+@Command(name = "wavelit",
+        description = "Wave command line tool",
+        mixinStandardHelpOptions = true,
+        versionProvider = CliVersionProvider.class,
+        usageHelpAutoWidth = true)
 public class App implements Runnable {
 
     private static final String DEFAULT_TOWER_ENDPOINT = "https://api.tower.nf";
@@ -156,6 +162,11 @@ public class App implements Runnable {
         try {
             final App app = new App();
             final CommandLine cli = new CommandLine(app);
+
+            // add examples in help
+            CommandLine.Model.UsageMessageSpec usageMessageSpec = cli.getCommandSpec().usageMessage();
+            usageMessageSpec.footer(loadExamples("examples.txt"));
+
             final CommandLine.ParseResult result = cli.parseArgs(args);
             if( result.matchedArgs().size()==0 || result.isUsageHelpRequested() ) {
                 cli.usage(System.out);
@@ -175,6 +186,19 @@ public class App implements Runnable {
             e.printStackTrace(System.err);
             System.exit(1);
         }
+    }
+
+    private static String loadExamples(String exampleFile) {
+            try(InputStream inputStream = App.class.getResourceAsStream(exampleFile)) {
+                if (inputStream != null) {
+                    byte[] buffer = new byte[inputStream.available()];
+                    inputStream.read(buffer);
+                    return new String(buffer, StandardCharsets.UTF_8);
+                }
+            } catch (IOException e) {
+                return e.getMessage();
+            }
+        return "nothing";
     }
 
     protected void setLogLevel() {

@@ -1,0 +1,45 @@
+Examples
+
+Augment a container image
+
+1. Create a directory holding the files to be added to your container:
+
+    mkdir -p new-layer/usr/local/bin
+    printf 'echo Hello world!' > new-layer/usr/local/bin/hello.sh
+    chmod +x new-layer/usr/local/bin/hello.sh
+
+2. Run the container via Wave
+
+    docker run $(wavelit -i alpine --layer new-layer) sh -c hello.sh
+
+Build a container with Dockerfile
+
+1. Create a Dockerfile for your container image:
+
+    cat << EOF > ./Dockerfile
+    FROM alpine
+    ADD hello.sh /usr/local/bin/
+    EOF
+
+2. Create the build context directory:
+
+    mkdir -p build-context/
+    printf 'echo Hello world!' > build-context/hello.sh
+    chmod +x build-context/hello.sh
+
+3. Build and run the container on the fly:
+
+    docker run $(wavelit -f Dockerfile --context build-context) sh -c hello.sh
+
+Build a Conda multi-packages container
+
+    docker run $(wavelit --conda-package bamtools=2.5.2 --conda-package samtools=1.17) sh -c 'bamtools --version && samtools --version'
+
+Build a Conda package container arm64 architecture
+
+    docker run --platform linux/arm64 $(wavelit --conda-package fastp --platform linux/arm64) sh -c 'fastp --version'
+
+Build a Spack package container
+
+    docker run $(wavelit --spack-package cowsay) sh -c 'cowsay Hello world!'
+

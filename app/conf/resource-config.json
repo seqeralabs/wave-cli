@@ -21,6 +21,9 @@
     }, 
     {
       "pattern":"\\Qtemplates/spack/dockerfile-spack-file.txt\\E"
+    },
+    {
+      "pattern":"\\Qio/seqera/wavelit/examples.txt\\E"
     }
   ]},
   "bundles":[]
