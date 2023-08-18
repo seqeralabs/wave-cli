@@ -165,7 +165,7 @@ public class App implements Runnable {
 
             // add examples in help
             CommandLine.Model.UsageMessageSpec usageMessageSpec = cli.getCommandSpec().usageMessage();
-            usageMessageSpec.footer(loadExamples("examples.txt"));
+            usageMessageSpec.header(loadExamples("examples.txt"));
 
             final CommandLine.ParseResult result = cli.parseArgs(args);
             if( result.matchedArgs().size()==0 || result.isUsageHelpRequested() ) {
