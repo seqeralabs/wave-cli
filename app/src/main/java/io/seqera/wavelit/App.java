@@ -35,6 +35,7 @@ import io.seqera.wave.api.SubmitContainerTokenResponse;
 import io.seqera.wave.config.CondaOpts;
 import io.seqera.wave.config.SpackOpts;
 import io.seqera.wave.util.DockerHelper;
+import io.seqera.wave.util.DockerIgnoreFilter;
 import io.seqera.wave.util.Packer;
 import io.seqera.wavelit.exception.BadClientResponseException;
 import io.seqera.wavelit.exception.IllegalCliArgumentException;
@@ -400,23 +401,15 @@ public class App implements Runnable {
     protected BuildContext prepareContext()  {
         if( isEmpty(contextDir) )
             return null;
-        BuildContext result = null;
+        BuildContext result;
         try {
             //check for .dockerignore file in context directory
-            Path dockerIgnorePath = Paths.get(contextDir, ".dockerignore");
-            if (Files.exists(dockerIgnorePath)){
-                List<String> dockerIgnorePatterns = new ArrayList<>();
-                dockerIgnorePatterns = Files.readAllLines(dockerIgnorePath);
-                Set<String> ignoredPatterns = new LinkedHashSet<>();
-                for(String pattern: dockerIgnorePatterns){
-                    if(!pattern.trim().isEmpty() && !pattern.trim().startsWith("#")){
-                        ignoredPatterns.add(pattern);
-                    }
-                }
-               result = BuildContext.of(new Packer().layer(Path.of(contextDir), ignoredPatterns));
-            }else{
-                result = BuildContext.of(new Packer().layer(Path.of(contextDir)));
-            }
+            final Path dockerIgnorePath = Path.of(contextDir).resolve(".dockerignore");
+            final DockerIgnoreFilter filter = Files.exists(dockerIgnorePath)
+                    ? DockerIgnoreFilter.fromFile(dockerIgnorePath)
+                    : null;
+            final Packer packer = new Packer().withFilter(filter);
+            result = BuildContext.of(packer.layer(Path.of(contextDir)));
         }
         catch (IOException e) {
             throw new RuntimeException("Unexpected error while preparing build context - cause: "+e.getMessage(), e);
