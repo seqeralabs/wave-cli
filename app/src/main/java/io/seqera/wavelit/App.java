@@ -36,9 +36,11 @@ import io.seqera.wave.config.CondaOpts;
 import io.seqera.wave.config.SpackOpts;
 import io.seqera.wave.util.DockerHelper;
 import io.seqera.wave.util.Packer;
+import io.seqera.wavelit.exception.BadClientResponseException;
 import io.seqera.wavelit.exception.IllegalCliArgumentException;
 import io.seqera.wavelit.json.JsonHelper;
 import io.seqera.wavelit.util.BuildInfo;
+import io.seqera.wavelit.util.Checkers;
 import io.seqera.wavelit.util.CliVersionProvider;
 import io.seqera.wavelit.util.YamlHelper;
 import org.slf4j.LoggerFactory;
@@ -50,10 +52,16 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Option;
 
+import static io.seqera.wave.util.DockerHelper.*;
+
 /**
  * Wavelit main class
  */
-@Command(name = "wavelit", description = "Wave command line tool", mixinStandardHelpOptions = true, versionProvider = CliVersionProvider.class, usageHelpAutoWidth = true)
+@Command(name = "wavelit",
+        description = "Wave command line tool",
+        mixinStandardHelpOptions = true,
+        versionProvider = CliVersionProvider.class,
+        usageHelpAutoWidth = true)
 public class App implements Runnable {
 
     private static final String DEFAULT_TOWER_ENDPOINT = "https://api.tower.nf";
@@ -144,6 +152,9 @@ public class App implements Runnable {
     @Option(names = {"-o","--output"}, paramLabel = "json|yaml",  description = "Output format. One of: json, yaml.")
     private String outputFormat;
 
+    @Option(names = {"-s","--singularity"}, paramLabel = "false", description = "Enable Singularity build (experimental)")
+    private boolean singularity;
+
     private BuildContext buildContext;
 
     private ContainerConfig containerConfig;
@@ -152,6 +163,13 @@ public class App implements Runnable {
         try {
             final App app = new App();
             final CommandLine cli = new CommandLine(app);
+
+            // add examples in help
+            cli
+                .getCommandSpec()
+                .usageMessage()
+                .footer(readExamples("usage-examples.txt"));
+
             final CommandLine.ParseResult result = cli.parseArgs(args);
             if( result.matchedArgs().size()==0 || result.isUsageHelpRequested() ) {
                 cli.usage(System.out);
@@ -163,13 +181,22 @@ public class App implements Runnable {
                 app.run();
             }
         }
-        catch (IllegalCliArgumentException | CommandLine.ParameterException e) {
+        catch (IllegalCliArgumentException | CommandLine.ParameterException | BadClientResponseException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         }
         catch (Throwable e) {
             e.printStackTrace(System.err);
             System.exit(1);
+        }
+    }
+
+    private static String readExamples(String exampleFile) {
+        try(InputStream stream = App.class.getResourceAsStream(exampleFile)) {
+            return new String(stream.readAllBytes());
+        }
+        catch (Exception e) {
+            throw new IllegalStateException("Unable to read usge examples", e);
         }
     }
 
@@ -275,6 +302,9 @@ public class App implements Runnable {
         if( !isEmpty(contextDir) && isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Option --context requires the use of a container file");
 
+        if( singularity && !freeze )
+            throw new IllegalCliArgumentException("Singularity build requires enabling freeze mode");
+
         if( !isEmpty(contextDir) ) {
             // check that a container file has been provided
             if( isEmpty(containerFile) )
@@ -308,6 +338,7 @@ public class App implements Runnable {
                 .withTowerAccessToken(towerToken)
                 .withTowerWorkspaceId(towerWorkspaceId)
                 .withTowerEndpoint(towerEndpoint)
+                .withFormat( singularity ? "sif" : null )
                 .withFreezeMode(freeze);
     }
 
@@ -463,10 +494,20 @@ public class App implements Runnable {
             final CondaOpts opts = new CondaOpts()
                     .withMambaImage(condaBaseImage)
                     .withCommands(condaRunCommands);
-            final String result = condaPackages!=null
-                    ? DockerHelper.condaPackagesToDockerFile(condaPackages.stream().collect(Collectors.joining(" ")), Arrays.asList(condaChannels.split(",")), opts)
-                    : DockerHelper.condaFileToDockerFile(opts);
-            return encodeStringBase64(result);
+            if( !Checkers.isEmpty(condaPackages) ) {
+                final String packages0 = condaPackages.stream().collect(Collectors.joining(" "));
+                final List<String> channels0 = Arrays.asList(condaChannels.split(","));
+                final String result = singularity
+                        ? condaPackagesToSingularityFile(packages0, channels0, opts)
+                        : condaPackagesToDockerFile(packages0, channels0, opts);
+                return encodeStringBase64(result);
+            }
+            else {
+                final String result = singularity
+                        ? condaFileToSingularityFile(opts)
+                        : condaFileToDockerFile(opts);
+                return encodeStringBase64(result);
+            }
         }
 
         if( !isEmpty(spackFile) || spackPackages!=null ) {
