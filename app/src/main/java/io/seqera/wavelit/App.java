@@ -65,6 +65,9 @@ import static io.seqera.wave.util.DockerHelper.*;
         usageHelpAutoWidth = true)
 public class App implements Runnable {
 
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(App.class);
+
+    private static final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
     private static final String DEFAULT_TOWER_ENDPOINT = "https://api.tower.nf";
 
     private static final long _1MB = 1024 * 1024;
@@ -403,6 +406,9 @@ public class App implements Runnable {
             return null;
         BuildContext result;
         try {
+            if( isWindows )
+                log.warn("Build context file permission may not be honoured when using Windows OS");
+
             //check for .dockerignore file in context directory
             final Path dockerIgnorePath = Path.of(contextDir).resolve(".dockerignore");
             final DockerIgnoreFilter filter = Files.exists(dockerIgnorePath)
