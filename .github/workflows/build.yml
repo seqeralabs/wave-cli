@@ -54,7 +54,7 @@ jobs:
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./app/build/native/nativeCompile/nativeCompile-${{ matrix.os }} -v
+          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./app/build/native/nativeCompile/wavelit -V
         if: ${{ matrix.codesign }}
 
       - name: Notarize binary
@@ -64,9 +64,9 @@ jobs:
           MACOS_NOTARIZATION_PWD: ${{ secrets.MACOS_NOTARIZATION_PWD }}
         run: |
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
-          ditto -c -k --keepParent "./app/build/native/nativeCompile" "notarization.zip"
+          ditto -c -k --keepParent "./app/build/native/nativeCompile/wavelit" "notarization.zip"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-          xcrun stapler staple "./app/build/native/nativeCompile/nativeCompile-${{ matrix.os }}"
+          xcrun stapler staple "./app/build/native/nativeCompile/wavelit"
         if: ${{ matrix.codesign }}
 
       - name: Publish tests report
