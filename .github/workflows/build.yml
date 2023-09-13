@@ -49,7 +49,7 @@ jobs:
           MACOS_CI_KEYCHAIN_PWD: ${{ secrets.MACOS_CI_KEYCHAIN_PWD }}
         run: |
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain 
+          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
@@ -59,11 +59,12 @@ jobs:
 
       - name: Notarize binary
         env:
-          MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.MACOS_NOTARIZATION_APPLE_ID }}
-          MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.MACOS_NOTARIZATION_TEAM_ID }}
-          MACOS_NOTARIZATION_PWD: ${{ secrets.MACOS_NOTARIZATION_PWD }}
+          MACOS_AC_API_CERT: ${{ secrets.MACOS_AC_API_CERT }}
+          MACOS_AC_API_ISSUER_ID: ${{ secrets.MACOS_AC_API_ISSUER_ID }}
+          MACOS_AC_API_KEY_ID: ${{ secrets.MACOS_AC_API_KEY_ID }}
         run: |
-          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
+          echo $MACOS_AC_API_CERT | base64 --decode > AuthKey.p8
+          xcrun notarytool store-credentials "notarytool-profile" -k AuthKey.p8 -d "$MACOS_AC_API_ISSUER_ID" -i "$MACOS_AC_API_ISSUER_ID"
           ditto -c -k --keepParent "./app/build/native/nativeCompile/wavelit" "notarization.zip"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
           xcrun stapler staple "./app/build/native/nativeCompile/wavelit"
