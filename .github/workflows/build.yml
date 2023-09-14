@@ -55,7 +55,7 @@ jobs:
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./app/build/native/nativeCompile/wavelit -v
-        if: ${{ matrix.codesign }}
+        if: "${{ matrix.codesign }} && contains(github.event.head_commit.message, '[release]') && github.event.ref=='refs/heads/master'"
 
       - name: Notarize binary
         env:
@@ -67,7 +67,7 @@ jobs:
           xcrun notarytool store-credentials "notarytool-profile" -k AuthKey.p8 -d "$MACOS_AC_API_KEY_ID" -i "$MACOS_AC_API_ISSUER_ID"
           ditto -c -k --keepParent "./app/build/native/nativeCompile/wavelit" "notarization.zip"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-        if: ${{ matrix.codesign }}
+        if: "${{ matrix.codesign }} && contains(github.event.head_commit.message, '[release]') && github.event.ref=='refs/heads/master'"
 
       - name: Publish tests report
         if: failure()
