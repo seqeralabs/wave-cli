@@ -19,6 +19,8 @@ jobs:
             codesign: true
           - os: macos-latest-xlarge
             codesign: true
+          - os: ubuntu-latest
+            musl: true
     steps:
       - uses: actions/checkout@v3
 
@@ -28,7 +30,7 @@ jobs:
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-          native-image-musl: ${{ matrix.os==ubuntu-latest }}
+          native-image-musl: ${{ musl }}
       - name: Run tests
         run: |
           ./gradlew test
