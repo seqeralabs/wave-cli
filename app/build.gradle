@@ -67,6 +67,11 @@ graalvmNative {
             imageName = 'wave'
             mainClass = 'io.seqera.wave.cli.App'
             configurationFileDirectories.from(file('conf'))
+
+            if (System.env.getOrDefault("PLATFORM", "") == "linux-x86_64") {
+                buildArgs(['--static', '--libc=musl'])
+            }
+
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(20)
             }
