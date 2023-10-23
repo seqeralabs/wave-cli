@@ -30,7 +30,7 @@ jobs:
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-          native-image-musl: ${{ musl }}
+          native-image-musl: ${{ matrix.musl }}
       - name: Run tests
         run: |
           ./gradlew test
