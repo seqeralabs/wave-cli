@@ -219,6 +219,9 @@ class AppTest extends Specification {
         new CommandLine(app).parseArgs(args)
         and:
         app.validateArgs()
+
+        then:
+        noExceptionThrown()
         and:
         app.@platform == 'linux/arm64'
         app.@image == 'ubuntu'
@@ -226,10 +229,6 @@ class AppTest extends Specification {
         app.@freeze
         app.@buildRepository == 'docker.io/foo'
         app.@towerToken == 'xyz'
-
-        then:
-        noExceptionThrown()
     }
-
 
 }
