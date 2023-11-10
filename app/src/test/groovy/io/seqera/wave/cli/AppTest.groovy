@@ -210,4 +210,26 @@ class AppTest extends Specification {
         noExceptionThrown()
     }
 
+    def 'should allow platform arm64 with singularity' () {
+        given:
+        def app = new App()
+        String[] args = [ '--singularity', "--platform", 'linux/arm64',  '-i', 'ubuntu', '--freeze', '--build-repo', 'docker.io/foo',  '--tower-token', 'xyz']
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        and:
+        app.@platform == 'linux/arm64'
+        app.@image == 'ubuntu'
+        app.@singularity
+        app.@freeze
+        app.@buildRepository == 'docker.io/foo'
+        app.@towerToken == 'xyz'
+
+        then:
+        noExceptionThrown()
+    }
+
+
 }
