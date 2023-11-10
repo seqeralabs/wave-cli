@@ -33,6 +33,15 @@ jobs:
         run: |
           ./gradlew test
 
+      - name: Build fat JAR
+        run: ./gradlew shadowJar
+
+      - name: Upload fat JAR artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: wave_jar
+          path: build/libs/wave.jar
+
       - name: Build native
         run: |
           ./gradlew app:nativeCompile
