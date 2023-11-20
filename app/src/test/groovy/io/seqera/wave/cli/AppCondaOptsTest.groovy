@@ -122,6 +122,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 '''.stripIndent()
         and:
         new String(req.condaFile.decodeBase64()) == CONDA_RECIPE
@@ -148,6 +149,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\   
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 '''.stripIndent()
         and:
         new String(req.condaFile.decodeBase64()) == '''\
@@ -178,6 +180,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 '''.stripIndent()
         and:
         req.condaFile == null
@@ -208,6 +211,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 RUN one
                 RUN two
                 '''.stripIndent()
