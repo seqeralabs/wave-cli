@@ -193,6 +193,8 @@ public class App implements Runnable {
             final App app = new App();
             final CommandLine cli = new CommandLine(app);
 
+            String tester = 'Marco'
+
             // add examples in help
             cli
                 .getCommandSpec()
