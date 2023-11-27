@@ -88,3 +88,22 @@ distributions:
       - path: "nativeCompile-windows-latest/wave.exe"
         transform: "wave-{{projectEffectiveVersion}}-windows-x86_64.exe"
         platform: windows-x86_64
+packagers:
+  brew:
+    active: RELEASE
+    continueOnError: false
+    downloadUrl: https://github.com/seqeralabs/wave-cli/releases/download/v{{projectEffectiveVersion}}/wave-{{projectEffectiveVersion}}-macos-x86_64
+    templateDirectory: app/src/jreleaser/distributions/wave/brew
+    commitAuthor:
+      name: seqeralabs
+      email: munish.chouhan@seqera.io
+    repository:
+      active: ALWAYS
+      owner: seqeralabs
+      name: homebrew-tap
+      tagName: '{{distributionName}}-{{tagName}}'
+      branch: HEAD
+      branchPush: '{{projectName}}-{{tagName}}'
+      token: '{{secrets.GITHUB_TOKEN}}'
+      commitMessage: '{{distributionName}} {{tagName}}'
+    formulaName: Waves
