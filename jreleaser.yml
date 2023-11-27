@@ -106,4 +106,4 @@ packagers:
       branchPush: '{{projectName}}-{{tagName}}'
       token: '{{secrets.GITHUB_TOKEN}}'
       commitMessage: '{{distributionName}} {{tagName}}'
-    formulaName: Waves
+    formulaName: Wave
