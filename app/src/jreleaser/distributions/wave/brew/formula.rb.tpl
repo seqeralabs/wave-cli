@@ -7,7 +7,7 @@ class Wave < Formula
   license "Apache-2.0"
 
   def install
-    mv "wave-1.1.0-macos-arm64", "wave"
+    mv "wave-{{projectEffectiveVersion}}-macos-arm64", "wave"
     bin.install "wave"
   end
 
