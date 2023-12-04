@@ -17,8 +17,10 @@ jobs:
         include:
           - os: macos-latest
             codesign: true
+            zip: true
           - os: macos-latest-xlarge
             codesign: true
+            zip: true
     steps:
       - uses: actions/checkout@v3
 
@@ -64,6 +66,12 @@ jobs:
           xcrun notarytool store-credentials "notarytool-profile" -k AuthKey.p8 -d "$MACOS_AC_API_KEY_ID" -i "$MACOS_AC_API_ISSUER_ID"
           ditto -c -k --keepParent "./app/build/native/nativeCompile/wave" "notarization.zip"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+
+      - name: create zip
+        if: ${{ matrix.zip }}
+        run: |
+          cd ./app/build/native/nativeCompile/
+          zip wave.zip wave
 
       - name: Upload binary
         uses: actions/upload-artifact@v3

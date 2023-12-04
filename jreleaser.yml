@@ -8,7 +8,7 @@ project:
   license: MPL-2.0
   extraProperties:
     inceptionYear: 2023
-
+  version: 1.1.0
 release:
   github:
     overwrite: true
@@ -88,11 +88,17 @@ distributions:
       - path: "nativeCompile-windows-latest/wave.exe"
         transform: "wave-{{projectEffectiveVersion}}-windows-x86_64.exe"
         platform: windows-x86_64
+      - path: "nativeCompile-macos-latest/wave.zip"
+        transform: "wave-{{projectEffectiveVersion}}-macos-x86_64.zip"
+        platform: osx-x86_64
+      - path: "nativeCompile-macos-latest-xlarge/wave.zip"
+        transform: "wave-{{projectEffectiveVersion}}-macos-arm64.zip"
+        platform: osx-arm64
 packagers:
   brew:
-    active: RELEASE
+    active: ALWAYS
     continueOnError: false
-    downloadUrl: https://github.com/seqeralabs/wave-cli/releases/download/v{{projectEffectiveVersion}}/wave-{{projectEffectiveVersion}}-macos-x86_64
+    downloadUrl: https://github.com/seqeralabs/wave-cli/releases/download/v{{projectEffectiveVersion}}/wave-{{projectEffectiveVersion}}-macos-arm64.zip
     templateDirectory: app/src/jreleaser/distributions/wave/brew
     commitAuthor:
       name: seqeralabs
