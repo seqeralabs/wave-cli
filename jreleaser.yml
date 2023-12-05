@@ -112,7 +112,7 @@ packagers:
     active: ALWAYS
     continueOnError: false
     downloadUrl: https://github.com/seqeralabs/wave-cli/releases/download/v{{projectEffectiveVersion}}/wave-{{projectEffectiveVersion}}-macos-arm64.zip
-    templateDirectory: app/src/jreleaser/distributions/wave/brew
+    templateDirectory: ./app/src/jreleaser/distributions/wave/brew
     commitAuthor:
       name: seqeralabs
       email: munish.chouhan@seqera.io
@@ -122,7 +122,5 @@ packagers:
       name: homebrew-tap
       tagName: '{{distributionName}}-{{tagName}}'
       branch: HEAD
-      branchPush: '{{projectName}}-{{tagName}}'
-      token: '{{secrets.GITHUB_TOKEN}}'
       commitMessage: '{{distributionName}} {{tagName}}'
     formulaName: Wave
