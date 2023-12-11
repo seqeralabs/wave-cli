@@ -124,3 +124,10 @@ packagers:
       branch: HEAD
       commitMessage: '{{distributionName}} {{tagName}}'
     formulaName: Wave
+
+  wave-cli-jar:
+    type: SINGLE_JAR
+    artifacts:
+      - path: "wave_jar/wave.jar"
+        transform: "wave-{{projectEffectiveVersion}}.jar"
+

@@ -6,6 +6,13 @@ on:
       - '!refs/tags/.*'
     tags-ignore:
       - '*'
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - '*'
+      - '!refs/tags/.*'
+    tags-ignore:
+      - '*'
 jobs:
   build:
     name: Wave on ${{ matrix.os }}
@@ -15,6 +22,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, macos-latest-xlarge, windows-latest]
         include:
+          - os: ubuntu-latest
+            fatjar: true
           - os: macos-latest
             codesign: true
             zip: true
@@ -34,6 +43,17 @@ jobs:
       - name: Run tests
         run: |
           ./gradlew test
+
+      - name: Build fat JAR
+        if: ${{ matrix.fatjar}}
+        run: ./gradlew shadowJar
+
+      - name: Upload fat JAR artifact
+        if: ${{ matrix.fatjar}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: wave_jar
+          path: ./app/build/libs/wave.jar
 
       - name: Build native
         run: |
