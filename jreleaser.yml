@@ -97,11 +97,11 @@ distributions:
         extraProperties:
           graalVMNativeImage: true
 
-    wave-cli-jar:
-      type: SINGLE_JAR
-      artifacts:
-        - path: "wave_jar/wave.jar"
-          transform: "wave-{{projectEffectiveVersion}}.jar"
+  wave-cli-jar:
+    type: SINGLE_JAR
+    artifacts:
+      - path: "wave_jar/wave.jar"
+        transform: "wave-{{projectEffectiveVersion}}.jar"
 
 packagers:
   brew:
