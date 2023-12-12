@@ -93,7 +93,7 @@ jobs:
           cd ./app/build/native/nativeCompile/
           zip wave.zip wave
 
-      - name: Upload binary
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: nativeCompile-${{ matrix.os }}

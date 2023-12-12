@@ -106,15 +106,12 @@ distributions:
 packagers:
   brew:
     active: ALWAYS
-    formulaName: Wave
+    formulaName: wave
     continueOnError: false
     templateDirectory: ./app/src/jreleaser/distributions/wave/brew
     repository:
-      active: ALWAYS
-      owner: seqeralabs
-      name: homebrew-tap
+      active: RELEASE
       tagName: '{{distributionName}}-{{tagName}}'
       branch: HEAD
       commitMessage: '{{distributionName}} {{tagName}}'
-    multiPlatform: true
 
