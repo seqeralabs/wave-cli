@@ -1,6 +1,7 @@
 plugins {
     id 'io.seqera.wave.cli.java-application-conventions'
     id 'groovy'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'org.graalvm.buildtools.native' version '0.9.28'
 }
 
@@ -21,7 +22,7 @@ repositories {
 
 dependencies {
     implementation 'io.seqera:wave-api:0.5.0'
-    implementation 'io.seqera:wave-utils:0.7.8'
+    implementation 'io.seqera:wave-utils:0.8.0'
     implementation 'info.picocli:picocli:4.6.1'
     implementation 'com.squareup.moshi:moshi:1.14.0'
     implementation 'com.squareup.moshi:moshi-adapters:1.14.0'
@@ -53,6 +54,12 @@ application {
     mainClass = 'io.seqera.wave.cli.App'
     //  Run the Graalvm agent to resolve dynamic proxies configuration
     applicationDefaultJvmArgs = ["-agentlib:native-image-agent=config-merge-dir=conf/"]
+}
+
+shadowJar {
+    archiveBaseName.set('wave')
+    archiveClassifier.set('')
+    archiveVersion.set('')
 }
 
 run {

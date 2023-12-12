@@ -335,6 +335,12 @@ public class App implements Runnable {
         if( !isEmpty(condaFile) && !isEmpty(spackFile) )
             throw new IllegalCliArgumentException("Option --conda-file and --spack-file conflict each other");
 
+        if( !isEmpty(condaFile) && !Files.exists(Path.of(condaFile)) )
+            throw new IllegalCliArgumentException("The specified Conda file path cannot be accessed - offending file path: " + condaFile);
+
+        if( !isEmpty(spackFile) && !Files.exists(Path.of(spackFile)) )
+            throw new IllegalCliArgumentException("The specified Spack file path cannot be accessed - offending file path: " + spackFile);
+
         if( !isEmpty(contextDir) && isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Option --context requires the use of a container file");
 
@@ -359,9 +365,6 @@ public class App implements Runnable {
 
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
-
-        if( singularity && !isEmpty(platform) && platform.contains("arm64") )
-            throw new IllegalCliArgumentException("Options --platform is currently not supported by Singularity native build");
 
     }
 
