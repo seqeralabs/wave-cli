@@ -1,5 +1,3 @@
-# Homebrew Formula for Wave-cli
-
 # {{jreleaserCreationStamp}}
 class {{brewFormulaName}} < Formula
   desc "{{projectDescription}}"
@@ -8,6 +6,17 @@ class {{brewFormulaName}} < Formula
   version "{{projectVersion}}"
   sha256 "{{distributionChecksumSha256}}"
   license "{{projectLicense}}"
+
+  {{#brewHasLivecheck}}
+  livecheck do
+    {{#brewLivecheck}}
+    {{.}}
+    {{/brewLivecheck}}
+  end
+  {{/brewHasLivecheck}}
+  {{#brewDependencies}}
+  depends_on {{.}}
+  {{/brewDependencies}}
 
   def install
     libexec.install Dir["*"]

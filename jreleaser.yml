@@ -81,16 +81,6 @@ distributions:
         platform: linux-x86_64
         extraProperties:
           graalVMNativeImage: true
-      - path: "nativeCompile-macos-latest/wave"
-        transform: "wave-{{projectEffectiveVersion}}-macos-x86_64"
-        platform: osx-x86_64
-        extraProperties:
-          graalVMNativeImage: true
-      - path: "nativeCompile-macos-latest-xlarge/wave"
-        transform: "wave-{{projectEffectiveVersion}}-macos-arm64"
-        platform: osx-arm64
-        extraProperties:
-          graalVMNativeImage: true
       - path: "nativeCompile-windows-latest/wave.exe"
         transform: "wave-{{projectEffectiveVersion}}-windows-x86_64.exe"
         platform: windows-x86_64
@@ -124,6 +114,7 @@ packagers:
       tagName: '{{distributionName}}-{{tagName}}'
       branch: HEAD
       commitMessage: '{{distributionName}} {{tagName}}'
+    multiPlatform: true
 
   wave-cli-jar:
     type: SINGLE_JAR
