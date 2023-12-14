@@ -73,7 +73,7 @@ release:
         - search: ' \[release\]'
 
 distributions:
-  wave:
+  wave-cli:
     type: FLAT_BINARY
     artifacts:
       - path: "nativeCompile-ubuntu-latest/wave"
@@ -106,7 +106,6 @@ distributions:
 packagers:
   brew:
     active: ALWAYS
-    formulaName: wave
     continueOnError: false
     templateDirectory: ./app/src/jreleaser/distributions/wave/brew
     repository:

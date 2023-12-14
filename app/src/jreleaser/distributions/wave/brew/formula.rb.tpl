@@ -10,12 +10,7 @@ class {{brewFormulaName}} < Formula
         sha256 "{{distributionChecksumSha256}}"
 
         def install
-            bin.install "{{distributionExecutableName}}" => "{{distributionExecutableName}}"
-        end
-
-        test do
-            output = shell_output("#{bin}/{{distributionExecutableName}} --version")
-            assert_match "{{projectVersion}}", output
+            bin.install "wave" => "wave"
         end
     end
 
@@ -24,12 +19,20 @@ class {{brewFormulaName}} < Formula
         sha256 "{{distributionChecksumSha256}}"
 
         def install
-            bin.install "{{distributionExecutableName}}" => "{{distributionExecutableName}}"
+            bin.install "wave" => "wave"
         end
+    end
 
-        test do
-            output = shell_output("#{bin}/{{distributionExecutableName}} --version")
-            assert_match "{{projectVersion}}", output
-        end
+    test do
+        output = shell_output("#{bin}/wave --version")
+        assert_match "{{projectVersion}}", output
+    end
+
+    def caveats
+        <<~EOS
+            wave has been installed!
+            To run it, type:
+            wave --help
+        EOS
     end
 end
