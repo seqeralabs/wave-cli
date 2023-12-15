@@ -30,7 +30,7 @@ class {{brewFormulaName}} < Formula
 
     def caveats
         <<~EOS
-            wave has been installed!
+            wave cli has been installed!
             To run it, type:
             wave --help
         EOS
