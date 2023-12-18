@@ -46,7 +46,7 @@ jobs:
           native-image-musl: 'true'
 
       - uses: graalvm/setup-graalvm@v1
-        if: ${{ !matrix.musl}}
+        if: ${{ !matrix.musl }}
         with:
           java-version: '21'
           components: 'native-image'
@@ -58,11 +58,11 @@ jobs:
           ./gradlew test
 
       - name: Build fat JAR
-        if: ${{ matrix.fatjar}}
+        if: ${{ matrix.fatjar }}
         run: ./gradlew shadowJar
 
       - name: Upload fat JAR artifact
-        if: ${{ matrix.fatjar}}
+        if: ${{ matrix.fatjar }}
         uses: actions/upload-artifact@v2
         with:
           name: wave_jar
