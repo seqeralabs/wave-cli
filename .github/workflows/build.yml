@@ -24,12 +24,12 @@ jobs:
         include:
           - os: ubuntu-latest
             fatjar: true
+            musl: true
           - os: macos-latest
             codesign: true
           - os: macos-latest-xlarge
             codesign: true
-          - os: ubuntu-latest
-            musl: true
+
     steps:
       - name: Environment
         run: env | sort
