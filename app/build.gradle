@@ -78,9 +78,9 @@ graalvmNative {
                 languageVersion = JavaLanguageVersion.of(20)
             }
             buildArgs.add('--enable-url-protocols=https')
-            buildArgs.add('-R:MaxHeapSize=256M')
-            buildArgs.add('-R:MinHeapSize=50M')
-            buildArgs.add('-R:MaxNewSize=256M')
+            buildArgs.add('-R:MaxHeapSize=100M')
+            buildArgs.add('-R:MinHeapSize=10M')
+            buildArgs.add('-R:MaxNewSize=25M')
         }
     }
     toolchainDetection = true
