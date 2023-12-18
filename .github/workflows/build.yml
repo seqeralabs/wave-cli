@@ -31,6 +31,9 @@ jobs:
           - os: ubuntu-latest
             musl: true
     steps:
+      - name: Environment
+          run: env | sort
+
       - uses: actions/checkout@v3
 
       - uses: graalvm/setup-graalvm@v1
