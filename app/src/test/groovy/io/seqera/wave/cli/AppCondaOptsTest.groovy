@@ -68,6 +68,20 @@ class AppCondaOptsTest extends Specification {
         thrown(IllegalCliArgumentException)
     }
 
+    def 'should fail when the conda file does not exist' () {
+        given:
+        def app = new App()
+        String[] args = ["--conda-file", "foo"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == "The specified Conda file path cannot be accessed - offending file path: foo"
+    }
+
     def 'should fail when passing both conda package and image' () {
         given:
         def app = new App()
@@ -122,6 +136,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 '''.stripIndent()
         and:
         new String(req.condaFile.decodeBase64()) == CONDA_RECIPE
@@ -148,6 +163,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\   
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 '''.stripIndent()
         and:
         new String(req.condaFile.decodeBase64()) == '''\
@@ -178,6 +194,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 '''.stripIndent()
         and:
         req.condaFile == null
@@ -208,6 +225,7 @@ class AppCondaOptsTest extends Specification {
                     && micromamba install -y -n base conda-forge::procps-ng \\
                     && micromamba clean -a -y
                 USER root
+                ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
                 RUN one
                 RUN two
                 '''.stripIndent()
