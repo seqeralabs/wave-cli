@@ -4,7 +4,7 @@ project:
   longDescription: Command line tool for Wave container provisioning
   website: https://github.com/seqeralabs/wave-cli
   authors:
-    - Seqera Labs
+    - Seqera
   license: MPL-2.0
   extraProperties:
     inceptionYear: 2023
@@ -107,7 +107,7 @@ packagers:
   brew:
     active: ALWAYS
     continueOnError: false
-    templateDirectory: ./app/src/jreleaser/distributions/wave/brew
+    templateDirectory: ./app/src/jreleaser/distributions/wave-cli/brew
     repository:
       active: RELEASE
       tagName: '{{distributionName}}-{{tagName}}'
