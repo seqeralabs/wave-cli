@@ -32,7 +32,7 @@ jobs:
             musl: true
     steps:
       - name: Environment
-          run: env | sort
+        run: env | sort
 
       - uses: actions/checkout@v3
 
