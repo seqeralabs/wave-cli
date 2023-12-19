@@ -107,6 +107,7 @@ packagers:
   brew:
     active: ALWAYS
     continueOnError: false
+    multiPlatform: true
     templateDirectory: ./app/src/jreleaser/distributions/wave-cli/brew
     repository:
       active: RELEASE

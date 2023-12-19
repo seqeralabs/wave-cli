@@ -1,38 +1,30 @@
 # {{jreleaserCreationStamp}}
 class {{brewFormulaName}} < Formula
-    desc "{{projectDescription}}"
-    homepage "{{projectLinkHomepage}}"
-    version "{{projectVersion}}"
-    license "{{projectLicense}}"
+  desc "{{projectDescription}}"
+  homepage "{{projectLinkHomepage}}"
+  url "{{distributionUrl}}"
+  version "{{projectVersion}}"
+  sha256 "{{distributionChecksumSha256}}"
+  license "{{projectLicense}}"
 
-    if OS.mac? && Hardware::CPU.arm?
-        url "https://github.com/seqeralabs/wave-cli/releases/download/v{{projectEffectiveVersion}}/wave-{{projectEffectiveVersion}}-macos-arm64.zip"
-        sha256 "{{distributionChecksumSha256}}"
+  {{#brewHasLivecheck}}
+  livecheck do
+    {{#brewLivecheck}}
+    {{.}}
+    {{/brewLivecheck}}
+  end
+  {{/brewHasLivecheck}}
+  {{#brewDependencies}}
+  depends_on {{.}}
+  {{/brewDependencies}}
 
-        def install
-            bin.install "wave" => "wave"
-        end
-    end
+  def install
+    libexec.install Dir["*"]
+    bin.install_symlink "#{libexec}/bin/{{distributionExecutableName}}" => "{{distributionExecutableName}}"
+  end
 
-    if OS.mac? && Hardware::CPU.intel?
-        url "https://github.com/seqeralabs/wave-cli/releases/download/v{{projectEffectiveVersion}}/wave-{{projectEffectiveVersion}}-macos-x86_64.zip"
-        sha256 "{{distributionChecksumSha256}}"
-
-        def install
-            bin.install "wave" => "wave"
-        end
-    end
-
-    test do
-        output = shell_output("#{bin}/wave --version")
-        assert_match "{{projectVersion}}", output
-    end
-
-    def caveats
-        <<~EOS
-            wave cli has been installed!
-            To run it, type:
-            wave --help
-        EOS
-    end
+  test do
+    output = shell_output("#{bin}/{{distributionExecutableName}} --version")
+    assert_match "{{projectVersion}}", output
+  end
 end
