@@ -41,6 +41,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import io.seqera.wave.api.BuildContext;
 import io.seqera.wave.api.ContainerConfig;
+import io.seqera.wave.api.ContainerInspectRequest;
+import io.seqera.wave.api.ContainerInspectResponse;
 import io.seqera.wave.api.ContainerLayer;
 import io.seqera.wave.api.ServiceInfo;
 import io.seqera.wave.api.SubmitContainerTokenRequest;
@@ -62,7 +64,6 @@ import static io.seqera.wave.cli.util.Checkers.isEnvVar;
 import static io.seqera.wave.util.DockerHelper.addPackagesToSpackFile;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPackages;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPath;
-import static io.seqera.wave.util.DockerHelper.condaFileFromPipPackages;
 import static io.seqera.wave.util.DockerHelper.condaFileToDockerFile;
 import static io.seqera.wave.util.DockerHelper.condaFileToSingularityFile;
 import static io.seqera.wave.util.DockerHelper.condaPackagesToDockerFile;
@@ -154,11 +155,8 @@ public class App implements Runnable {
     @Option(names = {"--conda-file"}, paramLabel = "''", description = "A Conda file used to build the container e.g. /some/path/conda.yaml.")
     private String condaFile;
 
-    @Option(names = {"--conda-package", "--conda"}, paramLabel = "''", description = "One or more Conda packages used to build the container e.g. bioconda::samtools=1.17.")
+    @Option(names = {"--conda-package"}, paramLabel = "''", description = "One or more Conda packages used to build the container e.g. bioconda::samtools=1.17.")
     private List<String> condaPackages;
-
-    @Option(names = {"--pip-package", "--pip"}, paramLabel = "''", description = "One or more Pip packages used to build the container e.g. numpy.")
-    private List<String> pipPackages;
 
     @Option(names = {"--conda-base-image"}, paramLabel = "''", description = "Conda base image used to to build the container (default: ${DEFAULT-VALUE}).")
     private String condaBaseImage = CondaOpts.DEFAULT_MAMBA_IMAGE;
@@ -172,7 +170,7 @@ public class App implements Runnable {
     @Option(names = {"--spack-file"}, paramLabel = "''",  description = "A Spack file used to build the container e.g. /some/path/spack.yaml.")
     private String spackFile;
 
-    @Option(names = {"--spack-package", "--spack"}, paramLabel = "''", description = "One or more Spack packages used to build the container e.g. cowsay.")
+    @Option(names = {"--spack-package"}, paramLabel = "''", description = "One or more Spack packages used to build the container e.g. cowsay.")
     private List<String> spackPackages;
 
     @Option(names = {"--spack-run-command"}, paramLabel = "''",  description = "Dockerfile RUN commands used to build the container.")
@@ -200,6 +198,12 @@ public class App implements Runnable {
 
     private ContainerConfig containerConfig;
 
+    @Option(names = {"--inspect"}, paramLabel = "false", description = "Inspect specified container image")
+    private boolean inspect;
+
+    @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
+    List<String> includes;
+
     public static void main(String[] args) {
         try {
             final App app = new App();
@@ -224,6 +228,9 @@ public class App implements Runnable {
             app.defaultArgs();
             if( app.info ) {
                 app.printInfo();
+            }
+            else if( app.inspect ) {
+                app.inspect();
             }
             else {
                 app.run();
@@ -289,7 +296,7 @@ public class App implements Runnable {
         if( !isEmpty(image) && !isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Argument --image and --containerfile conflict each other - Specify an image name or a container file for the container to be provisioned");
 
-        if( isEmpty(image) && isEmpty(containerFile) && isEmpty(condaFile) && isEmpty(condaPackages) && isEmpty(spackFile) && isEmpty(spackPackages) && isEmpty(pipPackages) )
+        if( isEmpty(image) && isEmpty(containerFile) && isEmpty(condaFile) && condaPackages==null  && isEmpty(spackFile) && spackPackages ==null  )
             throw new IllegalCliArgumentException("Provide either a image name or a container file for the Wave container to be provisioned");
 
         if( freeze && isEmpty(buildRepository) )
@@ -313,25 +320,6 @@ public class App implements Runnable {
 
         if( condaPackages!=null && !isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Option --conda-package and --containerfile conflict each other");
-
-        // -- check pip options
-        if( pipPackages!=null && !isEmpty(image) )
-            throw new IllegalCliArgumentException("Option --pip-package and --image conflict each other");
-
-        if( pipPackages!=null && !isEmpty(containerFile) )
-            throw new IllegalCliArgumentException("Option --pip-package and --containerfile conflict each other");
-
-        if( pipPackages!=null && condaPackages!=null )
-            throw new IllegalCliArgumentException("Option --pip-package and --conda-package conflict each other");
-
-        if( pipPackages!=null && spackPackages!=null )
-            throw new IllegalCliArgumentException("Option --pip-package and --spack-package conflict each other");
-
-        if( pipPackages!=null && !isEmpty(condaFile) )
-            throw new IllegalCliArgumentException("Option --pip-package and --conda-file conflict each other");
-
-        if( pipPackages!=null && !isEmpty(spackFile) )
-            throw new IllegalCliArgumentException("Option --pip-package and --spack-file conflict each other");
 
         // -- check spack options
         if( !isEmpty(spackFile) && spackPackages!=null )
@@ -430,7 +418,21 @@ public class App implements Runnable {
                 .withFormat( singularity ? "sif" : null )
                 .withFreezeMode(freeze)
                 .withDryRun(dryRun)
+                .withContainerIncludes(includes)
                 ;
+    }
+
+    public void inspect() {
+        final Client client = client();
+        final ContainerInspectRequest req = new ContainerInspectRequest()
+                .withContainerImage(image)
+                .withTowerAccessToken(towerToken)
+                .withTowerWorkspaceId(towerWorkspaceId)
+                .withTowerEndpoint(towerEndpoint)
+                ;
+
+        final ContainerInspectResponse resp = client.inspect(req);
+        System.out.println(dumpOutput(resp));
     }
 
     @Override
@@ -561,6 +563,7 @@ public class App implements Runnable {
             if( layer.gzipSize > _1MB )
                 throw new RuntimeException("Container layer cannot be bigger of 1 MiB - offending path: " + loc);
         }
+
         // check all size
         long size = 0;
         for(ContainerLayer it : result.layers ) {
@@ -574,6 +577,14 @@ public class App implements Runnable {
         return !result.empty() ? result : null;
     }
 
+    private ContainerInspectRequest inspectRequest(String image) {
+        return new ContainerInspectRequest()
+                .withContainerImage(image)
+                .withTowerEndpoint(towerEndpoint)
+                .withTowerAccessToken(towerToken)
+                .withTowerWorkspaceId(towerWorkspaceId);
+    }
+
     private CondaOpts condaOpts() {
         return new CondaOpts()
                 .withMambaImage(condaBaseImage)
@@ -585,7 +596,7 @@ public class App implements Runnable {
             return encodePathBase64(containerFile);
         }
 
-        if (!isEmpty(condaFile) || !isEmpty(condaPackages) || !isEmpty(pipPackages) ) {
+        if (!isEmpty(condaFile) || !isEmpty(condaPackages)) {
             String result;
             final String lock = condaLock();
             if (!isEmpty(lock)) {
@@ -624,11 +635,6 @@ public class App implements Runnable {
             final Path path = condaFileFromPackages(packages, condaChannels());
             return path != null ? encodePathBase64(path.toString()) : null;
         }
-        else if( !isEmpty(pipPackages) ) {
-            final String packages = pipPackages.stream().collect(Collectors.joining(" "));
-            final Path path = condaFileFromPipPackages(packages);
-            return path != null ? encodePathBase64(path.toString()) : null;
-        }
         else
             return null;
     }
@@ -660,6 +666,16 @@ public class App implements Runnable {
         return freeze
                 ? resp.containerImage
                 : resp.targetImage;
+    }
+
+    protected String dumpOutput(ContainerInspectResponse resp) {
+        if( "json".equals(outputFormat) || outputFormat==null ) {
+            return JsonHelper.toJson(resp);
+        }
+        if( "yaml".equals(outputFormat) ) {
+            return YamlHelper.toYaml(resp);
+        }
+        throw new IllegalArgumentException("Unexpected output format: "+outputFormat);
     }
 
     protected ContainerConfig readConfig(String path) {
