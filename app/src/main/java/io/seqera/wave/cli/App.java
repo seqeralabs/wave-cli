@@ -125,7 +125,7 @@ public class App implements Runnable {
     @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64 (default), linux/arm64.")
     private String platform;
 
-    @Option(names = {"--target", "--spack-target"}, paramLabel = "''", description = "Target CPU architecture for Spack builds. For instance: x86_64_v3 (default), icelake, zen3, etc.")
+    @Option(names = {"--target", "--spack-target"}, paramLabel = "''", description = "Target CPU architecture for Spack builds (experimental). For instance: x86_64_v3 (default), icelake, zen3, etc.")
     private String spackTarget;
 
     @Option(names = {"--await"}, paramLabel = "false",  description = "Await the container build to be available.")
