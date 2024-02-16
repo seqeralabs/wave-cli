@@ -214,9 +214,11 @@ class AppTest extends Specification {
         'amd64'         || _
         'x86_64'        || _
         'arm64'         || _
+        'aarch64'       || _
         'linux/amd64'   || _
         'linux/x86_64'  || _
         'linux/arm64'   || _
+        'linux/aarch64' || _
     }
 
     @Unroll
@@ -267,6 +269,60 @@ class AppTest extends Specification {
         app.@freeze
         app.@buildRepository == 'docker.io/foo'
         app.@towerToken == 'xyz'
+    }
+
+    @Unroll
+    def 'should allow platform option with spack target inference' () {
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest","--platform", PLATFORM]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        app.@platform == PLATFORM
+        app.@spackTarget == TARGET
+
+        where:
+        PLATFORM        | TARGET    || _
+        'linux/amd64'   | 'x86_64'  || _
+        'linux/x86_64'  | 'x86_64'  || _
+        'linux/arm64'   | 'aarch64' || _
+    }
+
+    @Unroll
+    def 'should allow spack target option along with legal platform option' () {
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest","--platform", PLATFORM,"--spack-target", "foo"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        app.@platform == PLATFORM
+        app.@spackTarget == TARGET
+
+        where:
+        PLATFORM        | TARGET    || _
+        'linux/amd64'   | 'foo'     || _
+        'linux/arm64'   | 'foo'     || _
+    }
+
+    def 'should allow spack target option standalone' () {
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest","--spack-target", "foo"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        app.@spackTarget == "foo"
     }
 
 }

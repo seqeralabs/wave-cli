@@ -385,6 +385,7 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
+        // This ensures the Wave CLI behaviour is consistent with Nextflow and it nf-wave plugin
         if( !isEmpty(platform) && isEmpty(spackTarget) ) {
             if( platform.contains("amd64") || platform.contains("x86_64") ) {
                 spackTarget = "x86_64";
