@@ -90,7 +90,9 @@ public class App implements Runnable {
     private static final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
     private static final String DEFAULT_TOWER_ENDPOINT = "https://api.tower.nf";
 
-    private static final List<String> VALID_PLATFORMS = List.of("amd64", "x86_64", "linux/amd64", "linux/x86_64", "arm64", "linux/arm64");
+    private static final List<String> VALID_PLATFORMS = List.of("amd64", "x86_64", "linux/amd64", "linux/x86_64", "arm64", "aarch64", "linux/arm64", "linux/aarch64");
+    private static final String DEFAULT_DOCKER_PLATFORM = "linux/amd64";
+    private static final String DEFAULT_SPACK_TARGET = "x86_64_v3";
 
     private static final long _1MB = 1024 * 1024;
 
@@ -121,8 +123,11 @@ public class App implements Runnable {
     @Option(names = {"--freeze"}, paramLabel = "false",  description = "Request a container freeze.")
     private boolean freeze;
 
-    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64, linux/arm64.")
+    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64 (default), linux/arm64.")
     private String platform;
+
+    @Option(names = {"--target", "--spack-target"}, paramLabel = "''", description = "Target CPU architecture for Spack builds (experimental). For instance: x86_64_v3 (default), icelake, zen3, etc.")
+    private String spackTarget;
 
     @Option(names = {"--await"}, paramLabel = "false",  description = "Await the container build to be available.")
     private boolean await;
@@ -382,6 +387,15 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
+        // This ensures the Wave CLI behaviour is consistent with Nextflow and it nf-wave plugin
+        if( !isEmpty(platform) && isEmpty(spackTarget) ) {
+            if( platform.contains("amd64") || platform.contains("x86_64") ) {
+                spackTarget = "x86_64";
+            }
+            else {
+                spackTarget = "aarch64";
+            }
+        }
     }
 
     protected Client client() {
@@ -394,7 +408,8 @@ public class App implements Runnable {
                 .withContainerFile(containerFileBase64())
                 .withCondaFile(condaFileBase64())
                 .withSpackFile(spackFileBase64())
-                .withContainerPlatform(platform)
+                .withContainerPlatform( isEmpty(platform) ? DEFAULT_DOCKER_PLATFORM : platform )
+                .withSpackTarget( isEmpty(spackTarget) ? DEFAULT_SPACK_TARGET : spackTarget )
                 .withTimestamp(OffsetDateTime.now())
                 .withBuildRepository(buildRepository)
                 .withCacheRepository(cacheRepository)
