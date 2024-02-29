@@ -200,6 +200,9 @@ public class App implements Runnable {
     @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
     List<String> includes;
 
+    @Option(names = {"--image-name"}, paramLabel = "false", description = "Overrides wave generated container image name")
+    String imageName;
+
     public static void main(String[] args) {
         try {
             final App app = new App();
@@ -382,6 +385,11 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
+        // Check if imageName is not empty
+        if( imageName != null ){
+            if( "".equals(imageName.trim()) ) throw new IllegalCliArgumentException("The --image-name cannot be an empty string");
+        }
+
     }
 
     protected Client client() {
@@ -407,7 +415,7 @@ public class App implements Runnable {
                 .withFreezeMode(freeze)
                 .withDryRun(dryRun)
                 .withContainerIncludes(includes)
-                ;
+                .withImageName(imageName);
     }
 
     public void inspect() {

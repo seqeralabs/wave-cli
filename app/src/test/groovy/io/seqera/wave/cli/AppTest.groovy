@@ -269,4 +269,21 @@ class AppTest extends Specification {
         app.@towerToken == 'xyz'
     }
 
+    def 'should add imageName' () {
+        given:
+        def app = new App()
+        String[] args = [ '-f', 'Dockerfile','--image-name', "foo"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+
+        then:
+        noExceptionThrown()
+        and:
+        app.@containerFile == 'Dockerfile'
+        app.@imageName == 'foo'
+    }
+
 }
