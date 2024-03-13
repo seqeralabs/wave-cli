@@ -31,10 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
@@ -60,8 +57,8 @@ import io.seqera.wave.util.DockerIgnoreFilter;
 import io.seqera.wave.util.Packer;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
-import static io.seqera.wave.cli.util.Checkers.isEmpty;
-import static io.seqera.wave.cli.util.Checkers.isEnvVar;
+
+import static io.seqera.wave.cli.util.Checkers.*;
 import static io.seqera.wave.util.DockerHelper.addPackagesToSpackFile;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPackages;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPath;
@@ -199,6 +196,9 @@ public class App implements Runnable {
 
     @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
     List<String> includes;
+
+    @Option(names = {"--label"}, paramLabel = "false", description = "Include one or more labels in the wave build image. e.g. KEY=VALUE")
+    List<String> label;
 
     public static void main(String[] args) {
         try {
@@ -382,6 +382,13 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
+        // check labels
+        if( label!=null ) {
+            for( String it : label) {
+                if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid docker label syntax - offending value: " + it);
+            }
+        }
+
     }
 
     protected Client client() {
@@ -389,6 +396,14 @@ public class App implements Runnable {
     }
 
     protected SubmitContainerTokenRequest createRequest() {
+        Map<String, String> labels = null;
+        if(label!=null){
+            labels = new HashMap<>();
+            for(String singleLabel: label){
+                String[]  singleLabelArray = singleLabel.split("=");
+                labels.put(singleLabelArray[0], singleLabelArray[1]);
+            }
+        }
         return new SubmitContainerTokenRequest()
                 .withContainerImage(image)
                 .withContainerFile(containerFileBase64())
@@ -407,6 +422,7 @@ public class App implements Runnable {
                 .withFreezeMode(freeze)
                 .withDryRun(dryRun)
                 .withContainerIncludes(includes)
+                .withLabels(labels)
                 ;
     }
 

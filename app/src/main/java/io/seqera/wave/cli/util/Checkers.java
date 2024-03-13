@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 public class Checkers {
 
     private static final Pattern ENV_REGEX = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*=.*$");
+    private static final Pattern LABEL_REGEX = Pattern.compile("^[a-z][a-z0-9.-]*[a-z0-9]=[^=]+$");
 
     static public boolean isEmpty(String value) {
         return value==null || "".equals(value.trim());
@@ -37,5 +38,9 @@ public class Checkers {
 
     static public boolean isEnvVar(String value) {
         return value!=null && ENV_REGEX.matcher(value).matches();
+    }
+
+    static public boolean isLabel(String value) {
+        return value!=null && LABEL_REGEX.matcher(value).matches();
     }
 }
