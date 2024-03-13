@@ -274,7 +274,7 @@ class AppTest extends Specification {
     def "test valid labels"(){
         given:
         def app = new App()
-        String[] args = ["--label", "key1=value1","--label", "key 2=value2"]
+        String[] args = ["--label", "key1=value1","--label", "key2=value2"]
 
         when:
         new CommandLine(app).parseArgs(args)
@@ -287,7 +287,7 @@ class AppTest extends Specification {
         then:
         request.labels == [
                 "key1":"value1",
-                "key 2":"value2"
+                "key2":"value2"
         ]
     }
 }
