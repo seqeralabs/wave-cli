@@ -280,7 +280,7 @@ class AppTest extends Specification {
         new CommandLine(app).parseArgs(args)
         then:
         app.@label[0] == "key1=value1"
-        app.@label[1] == "key 2=value2"
+        app.@label[1] == "key2=value2"
 
         when:
         def request = app.createRequest()
