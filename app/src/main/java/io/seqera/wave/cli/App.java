@@ -58,7 +58,9 @@ import io.seqera.wave.util.Packer;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
-import static io.seqera.wave.cli.util.Checkers.*;
+import static io.seqera.wave.cli.util.Checkers.isEmpty;
+import static io.seqera.wave.cli.util.Checkers.isEnvVar;
+import static io.seqera.wave.cli.util.Checkers.isLabel;
 import static io.seqera.wave.util.DockerHelper.addPackagesToSpackFile;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPackages;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPath;
@@ -396,14 +398,7 @@ public class App implements Runnable {
     }
 
     protected SubmitContainerTokenRequest createRequest() {
-        Map<String, String> labels = null;
-        if(label!=null){
-            labels = new HashMap<>();
-            for(String singleLabel: label){
-                String[]  singleLabelArray = singleLabel.split("=");
-                labels.put(singleLabelArray[0], singleLabelArray[1]);
-            }
-        }
+
         return new SubmitContainerTokenRequest()
                 .withContainerImage(image)
                 .withContainerFile(containerFileBase64())
@@ -422,7 +417,6 @@ public class App implements Runnable {
                 .withFreezeMode(freeze)
                 .withDryRun(dryRun)
                 .withContainerIncludes(includes)
-                .withLabels(labels)
                 ;
     }
 
@@ -577,6 +571,16 @@ public class App implements Runnable {
         if( size>=10 * _1MB )
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
+        Map<String, String> labels = null;
+        if(label!=null){
+            labels = new HashMap<>();
+            for(String singleLabel: label){
+                String[]  singleLabelArray = singleLabel.split("=");
+                labels.put(singleLabelArray[0], singleLabelArray[1]);
+            }
+        }
+
+        result.labels = labels;
         // return the result
         return !result.empty() ? result : null;
     }
