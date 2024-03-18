@@ -17,6 +17,8 @@
 
 package io.seqera.wave.cli
 
+import io.seqera.wave.api.ContainerConfig
+
 import java.nio.file.Files
 import java.time.Instant
 
@@ -269,4 +271,23 @@ class AppTest extends Specification {
         app.@towerToken == 'xyz'
     }
 
+    def "test valid labels"(){
+        given:
+        def app = new App()
+        String[] args = ["--label", "key1=value1","--label", "key2=value2"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        then:
+        app.@labels[0] == "key1=value1"
+        app.@labels[1] == "key2=value2"
+
+        when:
+        def config = app.prepareConfig()
+        then:
+        config.labels == [
+                "key1":"value1",
+                "key2":"value2"
+        ]
+    }
 }

@@ -31,10 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
@@ -60,8 +57,10 @@ import io.seqera.wave.util.DockerIgnoreFilter;
 import io.seqera.wave.util.Packer;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+
 import static io.seqera.wave.cli.util.Checkers.isEmpty;
 import static io.seqera.wave.cli.util.Checkers.isEnvVar;
+import static io.seqera.wave.cli.util.Checkers.isLabel;
 import static io.seqera.wave.util.DockerHelper.addPackagesToSpackFile;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPackages;
 import static io.seqera.wave.util.DockerHelper.condaFileFromPath;
@@ -199,6 +198,9 @@ public class App implements Runnable {
 
     @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
     List<String> includes;
+
+    @Option(names = {"--label"}, paramLabel = "false", description = "Include one or more labels in the wave build image. e.g. KEY=VALUE")
+    List<String> labels;
 
     public static void main(String[] args) {
         try {
@@ -382,6 +384,13 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
+        // check labels
+        if( labels!=null ) {
+            for( String it : labels) {
+                if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid docker label syntax - offending value: " + it);
+            }
+        }
+
     }
 
     protected Client client() {
@@ -389,6 +398,7 @@ public class App implements Runnable {
     }
 
     protected SubmitContainerTokenRequest createRequest() {
+
         return new SubmitContainerTokenRequest()
                 .withContainerImage(image)
                 .withContainerFile(containerFileBase64())
@@ -561,9 +571,23 @@ public class App implements Runnable {
         if( size>=10 * _1MB )
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
+        result.labels = createLablesMap(labels);
         // return the result
         return !result.empty() ? result : null;
     }
+
+    private Map<String, String> createLablesMap(List<String> labelList) {
+        if( labelList != null){
+            return labelList.stream()
+                    .map(entry -> entry.split("="))
+                    .filter(keyValue -> keyValue.length == 2)
+                    .collect(Collectors.toMap(
+                            keyValue -> keyValue[0],
+                            keyValue -> keyValue[1]));
+            }
+        return null;
+    }
+
 
     private ContainerInspectRequest inspectRequest(String image) {
         return new ContainerInspectRequest()
