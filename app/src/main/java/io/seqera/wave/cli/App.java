@@ -573,8 +573,6 @@ public class App implements Runnable {
 
         result.labels = createLablesMap(labels);
         // return the result
-        System.out.println("labels: " + labels);
-        System.out.println("Container config: " + result);
         return !result.empty() ? result : null;
     }
 
