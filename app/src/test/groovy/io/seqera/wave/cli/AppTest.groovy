@@ -279,13 +279,13 @@ class AppTest extends Specification {
         when:
         new CommandLine(app).parseArgs(args)
         then:
-        app.@label[0] == "key1=value1"
-        app.@label[1] == "key2=value2"
+        app.@labels[0] == "key1=value1"
+        app.@labels[1] == "key2=value2"
 
         when:
-        def request = app.createRequest()
+        def config = app.prepareConfig()
         then:
-        request.labels == [
+        config.labels == [
                 "key1":"value1",
                 "key2":"value2"
         ]

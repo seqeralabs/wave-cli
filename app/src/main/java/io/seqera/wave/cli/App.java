@@ -200,7 +200,7 @@ public class App implements Runnable {
     List<String> includes;
 
     @Option(names = {"--label"}, paramLabel = "false", description = "Include one or more labels in the wave build image. e.g. KEY=VALUE")
-    List<String> label;
+    List<String> labels;
 
     public static void main(String[] args) {
         try {
@@ -385,8 +385,8 @@ public class App implements Runnable {
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
         // check labels
-        if( label!=null ) {
-            for( String it : label) {
+        if( labels!=null ) {
+            for( String it : labels) {
                 if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid docker label syntax - offending value: " + it);
             }
         }
@@ -571,19 +571,25 @@ public class App implements Runnable {
         if( size>=10 * _1MB )
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
-        Map<String, String> labels = null;
-        if(label!=null){
-            labels = new HashMap<>();
-            for(String singleLabel: label){
-                String[]  singleLabelArray = singleLabel.split("=");
-                labels.put(singleLabelArray[0], singleLabelArray[1]);
-            }
-        }
-
-        result.labels = labels;
+        result.labels = createLablesMap(labels);
         // return the result
+        System.out.println("labels: " + labels);
+        System.out.println("Container config: " + result);
         return !result.empty() ? result : null;
     }
+
+    private Map<String, String> createLablesMap(List<String> labelList) {
+        if( labelList != null){
+            return labelList.stream()
+                    .map(entry -> entry.split("="))
+                    .filter(keyValue -> keyValue.length == 2)
+                    .collect(Collectors.toMap(
+                            keyValue -> keyValue[0],
+                            keyValue -> keyValue[1]));
+            }
+        return null;
+    }
+
 
     private ContainerInspectRequest inspectRequest(String image) {
         return new ContainerInspectRequest()
