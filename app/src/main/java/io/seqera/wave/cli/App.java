@@ -44,6 +44,7 @@ import io.seqera.wave.api.ContainerConfig;
 import io.seqera.wave.api.ContainerInspectRequest;
 import io.seqera.wave.api.ContainerInspectResponse;
 import io.seqera.wave.api.ContainerLayer;
+import io.seqera.wave.api.PackagesSpec;
 import io.seqera.wave.api.ServiceInfo;
 import io.seqera.wave.api.SubmitContainerTokenRequest;
 import io.seqera.wave.api.SubmitContainerTokenResponse;
@@ -62,16 +63,6 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import static io.seqera.wave.cli.util.Checkers.isEmpty;
 import static io.seqera.wave.cli.util.Checkers.isEnvVar;
-import static io.seqera.wave.util.DockerHelper.addPackagesToSpackFile;
-import static io.seqera.wave.util.DockerHelper.condaFileFromPackages;
-import static io.seqera.wave.util.DockerHelper.condaFileFromPath;
-import static io.seqera.wave.util.DockerHelper.condaFileToDockerFile;
-import static io.seqera.wave.util.DockerHelper.condaFileToSingularityFile;
-import static io.seqera.wave.util.DockerHelper.condaPackagesToDockerFile;
-import static io.seqera.wave.util.DockerHelper.condaPackagesToSingularityFile;
-import static io.seqera.wave.util.DockerHelper.spackFileToDockerFile;
-import static io.seqera.wave.util.DockerHelper.spackFileToSingularityFile;
-import static io.seqera.wave.util.DockerHelper.spackPackagesToSpackFile;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Option;
 
@@ -392,8 +383,7 @@ public class App implements Runnable {
         return new SubmitContainerTokenRequest()
                 .withContainerImage(image)
                 .withContainerFile(containerFileBase64())
-                .withCondaFile(condaFileBase64())
-                .withSpackFile(spackFileBase64())
+                .withPackages(packagesSpec())
                 .withContainerPlatform(platform)
                 .withTimestamp(OffsetDateTime.now())
                 .withBuildRepository(buildRepository)
@@ -576,69 +566,55 @@ public class App implements Runnable {
     private CondaOpts condaOpts() {
         return new CondaOpts()
                 .withMambaImage(condaBaseImage)
-                .withCommands(condaRunCommands);
+                .withCommands(condaRunCommands)
+                ;
+    }
+
+    private SpackOpts spackOpts() {
+        return new SpackOpts()
+                .withCommands(spackRunCommands);
     }
 
     protected String containerFileBase64() {
-        if( !isEmpty(containerFile) ) {
-            return encodePathBase64(containerFile);
+        return !isEmpty(containerFile)
+                ? encodePathBase64(containerFile)
+                : null;
+    }
+
+    protected PackagesSpec packagesSpec() {
+        if( !isEmpty(condaFile) ) {
+            return new PackagesSpec()
+                    .withType(PackagesSpec.Type.CONDA)
+                    .withCondaOpts(condaOpts())
+                    .withEnvFile(encodePathBase64(condaFile))
+                    .withChannels(condaChannels())
+                    ;
         }
 
-        if (!isEmpty(condaFile) || !isEmpty(condaPackages)) {
-            String result;
-            final String lock = condaLock();
-            if (!isEmpty(lock)) {
-                result = singularity
-                        ? condaPackagesToSingularityFile(lock, condaChannels(), condaOpts())
-                        : condaPackagesToDockerFile(lock, condaChannels(), condaOpts());
-            } else {
-                result = singularity
-                        ? condaFileToSingularityFile(condaOpts())
-                        : condaFileToDockerFile(condaOpts());
-            }
-            return encodeStringBase64(result);
+        if( !isEmpty(condaPackages) ) {
+            return new PackagesSpec()
+                    .withType(PackagesSpec.Type.CONDA)
+                    .withCondaOpts(condaOpts())
+                    .withPackages(condaPackages)
+                    .withChannels(condaChannels())
+                    ;
         }
 
-        if( !isEmpty(spackFile) || spackPackages!=null ) {
-            final SpackOpts opts = new SpackOpts() .withCommands(spackRunCommands);
-            final String result = singularity
-                        ? spackFileToSingularityFile(opts)
-                        : spackFileToDockerFile(opts);
-            return encodeStringBase64(result);
+        if( !isEmpty(spackFile) ) {
+            return new PackagesSpec()
+                    .withType(PackagesSpec.Type.SPACK)
+                    .withSpackOpts(spackOpts())
+                    .withEnvFile(encodePathBase64(spackFile));
+        }
+
+        if( !isEmpty(spackPackages) ) {
+            return new PackagesSpec()
+                    .withType(PackagesSpec.Type.SPACK)
+                    .withSpackOpts(spackOpts())
+                    .withPackages(spackPackages);
         }
 
         return null;
-    }
-
-    protected String condaFileBase64() {
-        if (!isEmpty(condaFile)) {
-            // parse the attribute as a conda file path *and* append the base packages if any
-            // note 'channel' is null, because they are expected to be provided in the conda file
-            final Path path = condaFileFromPath(condaFile, null);
-            return path != null ? encodePathBase64(path.toString()) : null;
-        }
-        else if (!isEmpty(condaPackages) && isEmpty(condaLock())) {
-            // create a minimal conda file with package spec from user input
-            final String packages = condaPackages.stream().collect(Collectors.joining(" "));
-            final Path path = condaFileFromPackages(packages, condaChannels());
-            return path != null ? encodePathBase64(path.toString()) : null;
-        }
-        else
-            return null;
-    }
-
-    protected String spackFileBase64() {
-        if( !isEmpty(spackFile) ) {
-            // parse the attribute as a spack file path *and* append the base packages if any
-            return encodePathBase64(addPackagesToSpackFile(spackFile, new SpackOpts()).toString());
-        }
-        else if( spackPackages!=null && spackPackages.size()>0  ) {
-            // create a minimal spack file with package spec from user input
-            final String packages = spackPackages.stream().collect(Collectors.joining(" "));
-            return encodePathBase64(spackPackagesToSpackFile(packages, new SpackOpts()).toString());
-        }
-        else
-            return null;
     }
 
     protected String dumpOutput(SubmitContainerTokenResponse resp) {
@@ -696,6 +672,7 @@ public class App implements Runnable {
                 .collect(Collectors.toList());
     }
 
+    @Deprecated
     protected String condaLock() {
         if( isEmpty(condaPackages) )
             return null;

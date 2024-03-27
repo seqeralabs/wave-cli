@@ -59,7 +59,8 @@ class AppTest extends Specification {
                 targetImage: 'docker.io/some/repo',
                 containerImage: 'docker.io/some/container',
                 expiration: Instant.ofEpochMilli(1691839913),
-                buildId: '98765'
+                buildId: '98765',
+                cached: true
         )
 
         when:
@@ -68,6 +69,7 @@ class AppTest extends Specification {
         then:
         result == '''\
             buildId: '98765'
+            cached: true
             containerImage: docker.io/some/container
             containerToken: '12345'
             expiration: '1970-01-20T13:57:19.913Z'

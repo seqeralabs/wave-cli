@@ -112,7 +112,7 @@ public class Client {
 
     SubmitContainerTokenResponse submit(SubmitContainerTokenRequest request) {
         final String body = JsonHelper.toJson(request);
-        final URI uri = URI.create(endpoint + "/container-token");
+        final URI uri = URI.create(endpoint + "/v1alpha2/container");
         log.debug("Wave request: {} - payload: {}", uri, request);
         final HttpRequest req = HttpRequest.newBuilder()
                 .uri(uri)
