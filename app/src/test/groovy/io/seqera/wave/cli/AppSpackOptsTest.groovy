@@ -132,13 +132,13 @@ class AppSpackOptsTest extends Specification {
         then:
         req.packages.type == PackagesSpec.Type.SPACK
         and:
-        new String(req.packages.envFile.decodeBase64())  == SPACK_FILE
+        new String(req.packages.environment.decodeBase64())  == SPACK_FILE
         and:
         req.packages.spackOpts == new SpackOpts()
         and:
         !req.packages.condaOpts
         !req.packages.channels
-        !req.packages.packages
+        !req.packages.entries
         !req.packages.channels
         and:
         !req.spackFile
@@ -160,14 +160,13 @@ class AppSpackOptsTest extends Specification {
         def req = app.createRequest()
         then:
         req.packages.type == PackagesSpec.Type.SPACK
-        req.packages.packages == ['foo']
+        req.packages.entries == ['foo']
         and:
-        !req.packages.envFile
+        !req.packages.environment
         and:
         req.packages.spackOpts == new SpackOpts()
         and:
         !req.packages.condaOpts
-        !req.packages.channels
         !req.packages.channels
         and:
         !req.spackFile
@@ -190,9 +189,9 @@ class AppSpackOptsTest extends Specification {
         def req = app.createRequest()
         then:
         req.packages.type == PackagesSpec.Type.SPACK
-        req.packages.packages == ['foo','bar']
+        req.packages.entries == ['foo','bar']
         and:
-        !req.packages.envFile
+        !req.packages.environment
         and:
         req.packages.spackOpts == new SpackOpts(commands: ['RUN one','RUN two'])
         and:

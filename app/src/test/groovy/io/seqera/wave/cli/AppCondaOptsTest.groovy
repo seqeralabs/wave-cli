@@ -133,7 +133,7 @@ class AppCondaOptsTest extends Specification {
         then:
         req.packages.type == PackagesSpec.Type.CONDA
         and:
-        new String(req.packages.envFile.decodeBase64())  == '''
+        new String(req.packages.environment.decodeBase64())  == '''
             name: my-recipe
             dependencies: 
             - one=1.0
@@ -143,7 +143,7 @@ class AppCondaOptsTest extends Specification {
         req.packages.condaOpts == new CondaOpts(mambaImage: CondaOpts.DEFAULT_MAMBA_IMAGE, basePackages: CondaOpts.DEFAULT_PACKAGES)
         req.packages.channels == ['seqera', 'conda-forge', 'bioconda', 'defaults']
         and:
-        !req.packages.packages
+        !req.packages.entries
         and:
         !req.condaFile
 
@@ -163,13 +163,12 @@ class AppCondaOptsTest extends Specification {
         def req = app.createRequest()
         then:
         req.packages.type == PackagesSpec.Type.CONDA
-        req.packages.packages == ['foo']
+        req.packages.entries == ['foo']
         and:
         req.packages.condaOpts == new CondaOpts(mambaImage: CondaOpts.DEFAULT_MAMBA_IMAGE, basePackages: CondaOpts.DEFAULT_PACKAGES)
         req.packages.channels == ['seqera', 'conda-forge', 'bioconda', 'defaults']
         and:
-        !req.packages.envFile
-        !req.packages.envFile
+        !req.packages.environment
         and:
         !req.condaFile
     }
@@ -185,13 +184,12 @@ class AppCondaOptsTest extends Specification {
         def req = app.createRequest()
         then:
         req.packages.type == PackagesSpec.Type.CONDA
-        req.packages.packages == ['https://host.com/file-lock.yml']
+        req.packages.entries == ['https://host.com/file-lock.yml']
         and:
         req.packages.condaOpts == new CondaOpts(mambaImage: CondaOpts.DEFAULT_MAMBA_IMAGE, basePackages: CondaOpts.DEFAULT_PACKAGES)
         req.packages.channels == ['seqera', 'conda-forge', 'bioconda', 'defaults']
         and:
-        !req.packages.envFile
-        !req.packages.envFile
+        !req.packages.environment
         and:
         !req.condaFile
     }
@@ -214,13 +212,12 @@ class AppCondaOptsTest extends Specification {
         def req = app.createRequest()
         then:
         req.packages.type == PackagesSpec.Type.CONDA
-        req.packages.packages == ['foo','bar']
+        req.packages.entries == ['foo','bar']
         req.packages.channels == ['alpha','beta']
         and:
         req.packages.condaOpts == new CondaOpts(mambaImage: 'my/mamba:latest', basePackages: CondaOpts.DEFAULT_PACKAGES, commands: ['RUN one','RUN two'])
         and:
-        !req.packages.envFile
-        !req.packages.envFile
+        !req.packages.environment
         and:
         !req.condaFile
     }

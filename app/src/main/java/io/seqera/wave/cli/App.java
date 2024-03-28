@@ -586,7 +586,7 @@ public class App implements Runnable {
             return new PackagesSpec()
                     .withType(PackagesSpec.Type.CONDA)
                     .withCondaOpts(condaOpts())
-                    .withEnvFile(encodePathBase64(condaFile))
+                    .withEnvironment(encodePathBase64(condaFile))
                     .withChannels(condaChannels())
                     ;
         }
@@ -595,7 +595,7 @@ public class App implements Runnable {
             return new PackagesSpec()
                     .withType(PackagesSpec.Type.CONDA)
                     .withCondaOpts(condaOpts())
-                    .withPackages(condaPackages)
+                    .withEntries(condaPackages)
                     .withChannels(condaChannels())
                     ;
         }
@@ -604,14 +604,14 @@ public class App implements Runnable {
             return new PackagesSpec()
                     .withType(PackagesSpec.Type.SPACK)
                     .withSpackOpts(spackOpts())
-                    .withEnvFile(encodePathBase64(spackFile));
+                    .withEnvironment(encodePathBase64(spackFile));
         }
 
         if( !isEmpty(spackPackages) ) {
             return new PackagesSpec()
                     .withType(PackagesSpec.Type.SPACK)
                     .withSpackOpts(spackOpts())
-                    .withPackages(spackPackages);
+                    .withEntries(spackPackages);
         }
 
         return null;
