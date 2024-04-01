@@ -627,9 +627,7 @@ public class App implements Runnable {
         if( outputFormat!=null )
             throw new IllegalArgumentException("Unexpected output format: "+outputFormat);
 
-        return freeze
-                ? resp.containerImage
-                : resp.targetImage;
+        return resp.targetImage;
     }
 
     protected String dumpOutput(ContainerInspectResponse resp) {
