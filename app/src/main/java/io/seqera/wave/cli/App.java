@@ -367,7 +367,7 @@ public class App implements Runnable {
                 throw new IllegalCliArgumentException("Context path is not a directory - offending value: " + contextDir);
         }
 
-        if( dryRun && await)
+        if( dryRun && await )
             throw new IllegalCliArgumentException("Options --dry-run and --await conflicts each other");
 
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
