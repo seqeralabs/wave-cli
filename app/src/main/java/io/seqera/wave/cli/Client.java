@@ -35,12 +35,7 @@ import dev.failsafe.RetryPolicy;
 import dev.failsafe.event.EventListener;
 import dev.failsafe.event.ExecutionAttemptedEvent;
 import dev.failsafe.function.CheckedSupplier;
-import io.seqera.wave.api.ContainerInspectRequest;
-import io.seqera.wave.api.ContainerInspectResponse;
-import io.seqera.wave.api.ServiceInfo;
-import io.seqera.wave.api.ServiceInfoResponse;
-import io.seqera.wave.api.SubmitContainerTokenRequest;
-import io.seqera.wave.api.SubmitContainerTokenResponse;
+import io.seqera.wave.api.*;
 import io.seqera.wave.cli.config.RetryOpts;
 import io.seqera.wave.cli.exception.BadClientResponseException;
 import io.seqera.wave.cli.exception.ClientConnectionException;
@@ -194,7 +189,16 @@ public class Client {
         return URI.create(result);
     }
 
-    protected void awaitImage(String image) {
+    protected void awaitImage(SubmitContainerTokenResponse response) throws IOException {
+        System.out.println(response.buildId+"----"+response.cached);
+        if(response.buildId != null && !response.cached){
+            awaitStatusComplete(response);
+        }else{
+            awaitImage0(response.targetImage);
+        }
+    }
+
+    protected void awaitImage0(String image){
         final URI manifest = imageToManifestUri(image);
         final HttpRequest req = HttpRequest.newBuilder()
                 .uri(manifest)
@@ -213,6 +217,33 @@ public class Client {
             String message = String.format("Unexpected response for '%s': [%d] %s", manifest, resp.statusCode(), resp.body());
             throw new IllegalStateException(message);
         }
+    }
+    protected void awaitStatusComplete(SubmitContainerTokenResponse response) throws IOException {
+        final URI uri = URI.create(endpoint + "/v1alpha1/builds/"+response.buildId+"/status");
+        final HttpRequest req = HttpRequest.newBuilder()
+                .uri(uri)
+                .headers("Content-Type","application/json")
+                .GET()
+                .build();
+
+        HttpResponse<String> resp = httpSend(req);
+        BuildStatusResponse buildStatusResponse = JsonHelper.fromJson(resp.body(), BuildStatusResponse.class);
+        if( resp.statusCode() == 200 ){
+            while( resp.statusCode() == 200 && buildStatusResponse.status == BuildStatusResponse.Status.PENDING ) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                resp = httpSend(req);
+                buildStatusResponse = JsonHelper.fromJson(resp.body(), BuildStatusResponse.class);
+                }
+        } else {
+            String message = String.format("Unexpected response for '%s': [%d] %s", uri, resp.statusCode(), resp.body());
+            throw new IllegalStateException(message);
+        }
+        log.debug("Wave container available in {} [{}] {}", buildStatusResponse.duration, resp.statusCode(), buildStatusResponse);
     }
 
     ServiceInfo serviceInfo() {

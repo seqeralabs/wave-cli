@@ -427,8 +427,13 @@ public class App implements Runnable {
         // submit it
         SubmitContainerTokenResponse resp = client.submit(request);
         // await build to be completed
-        if( await )
-            client.awaitImage(resp.targetImage);
+        if( await ) {
+            try {
+                client.awaitImage(resp);
+            } catch (IOException e) {
+                log.error("Error while waiting for the image to be built", e);
+            }
+        }
         // print the wave container name
         System.out.println(dumpOutput(resp));
     }

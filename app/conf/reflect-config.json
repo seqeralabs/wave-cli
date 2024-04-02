@@ -200,6 +200,16 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"io.seqera.wave.api.BuildStatusResponse",
+  "allDeclaredFields":true,
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.api.BuildStatusResponse$Status",
+  "fields":[{"name":"PENDING"}, {"name":"COMPLETED"}]
+},
+{
   "name":"io.seqera.wave.api.SubmitContainerTokenResponse",
   "allDeclaredFields":true,
   "queryAllPublicMethods":true,
@@ -217,7 +227,9 @@
 {
   "name":"io.seqera.wave.cli.json.DateTimeAdapter",
   "queryAllDeclaredMethods":true,
-  "methods":[{"name":"deserializeInstant","parameterTypes":["java.lang.String"] }, {"name":"serializeInstant","parameterTypes":["java.time.Instant"] }]
+  "methods":[{"name":"deserializeInstant","parameterTypes":["java.lang.String"] },
+    {"name":"serializeInstant","parameterTypes":["java.time.Instant"] },
+    {"name":"deserializeDuration","parameterTypes":["java.lang.String"]}]
 },
 {
   "name":"io.seqera.wave.cli.json.PathAdapter",
