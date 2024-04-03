@@ -252,9 +252,9 @@ public class Client {
         } while (System.currentTimeMillis() - startTime < timeoutSeconds * 1000 && buildStatusResponse.status == BuildStatusResponse.Status.PENDING);
 
         if (buildStatusResponse.status != BuildStatusResponse.Status.COMPLETED) {
-            log.debug("Wave container build still pending after timeout. Last status: [{}] {}", resp.statusCode(), buildStatusResponse);
+            log.debug("Wave container build still pending after timeout. Last status: [{}] {}", resp.statusCode(), resp.body());
         } else {
-            log.debug("Wave container available in {} [{}] {}", buildStatusResponse.duration, resp.statusCode(), buildStatusResponse);
+            log.debug("Wave container available in {} seconds [{}] {}", buildStatusResponse.duration.getSeconds(), resp.statusCode(), resp.body());
         }
     }
 
