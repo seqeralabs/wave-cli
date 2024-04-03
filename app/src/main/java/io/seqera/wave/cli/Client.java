@@ -190,7 +190,6 @@ public class Client {
     }
 
     protected void awaitImage(SubmitContainerTokenResponse response) throws IOException {
-        System.out.println(response.buildId+"----"+response.cached);
         if(response.buildId != null && !response.cached){
             awaitStatusComplete(response);
         }else{
@@ -227,9 +226,9 @@ public class Client {
                 .headers("Content-Type","application/json")
                 .GET()
                 .build();
+
         int timeoutSeconds = 600;
         long startTime = System.currentTimeMillis();
-
         HttpResponse<String> resp;
         BuildStatusResponse buildStatusResponse;
 
