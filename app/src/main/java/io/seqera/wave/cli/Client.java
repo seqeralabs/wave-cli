@@ -221,31 +221,42 @@ public class Client {
 
     //This method will make sure, that client waits till the image is built and freeze by wave
     protected void awaitStatusComplete(SubmitContainerTokenResponse response) throws IOException {
-        final URI uri = URI.create(endpoint + "/v1alpha1/builds/"+response.buildId+"/status");
+        final String statusEndpoint = endpoint + "/v1alpha1/builds/"+response.buildId+"/status";
         final HttpRequest req = HttpRequest.newBuilder()
-                .uri(uri)
+                .uri(URI.create(statusEndpoint))
                 .headers("Content-Type","application/json")
                 .GET()
                 .build();
+        int timeoutSeconds = 600;
+        long startTime = System.currentTimeMillis();
 
-        HttpResponse<String> resp = httpSend(req);
-        BuildStatusResponse buildStatusResponse = JsonHelper.fromJson(resp.body(), BuildStatusResponse.class);
-        if( resp.statusCode() == 200 ){
-            while( resp.statusCode() == 200 && buildStatusResponse.status == BuildStatusResponse.Status.PENDING ) {
+        HttpResponse<String> resp;
+        BuildStatusResponse buildStatusResponse;
+
+        do {
+            resp = httpSend(req);
+            buildStatusResponse = JsonHelper.fromJson(resp.body(), BuildStatusResponse.class);
+
+            if (resp.statusCode() != 200) {
+                String message = String.format("Unexpected response for '%s': [%d] %s",statusEndpoint , resp.statusCode(), resp.body());
+                throw new IllegalStateException(message);
+            }
+
+            if (buildStatusResponse.status == BuildStatusResponse.Status.PENDING) {
                 try {
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
                 }
-                resp = httpSend(req);
-                buildStatusResponse = JsonHelper.fromJson(resp.body(), BuildStatusResponse.class);
-                }
+            }
+        } while (System.currentTimeMillis() - startTime < timeoutSeconds * 1000 && buildStatusResponse.status == BuildStatusResponse.Status.PENDING);
+
+        if (buildStatusResponse.status != BuildStatusResponse.Status.COMPLETED) {
+            log.debug("Wave container build still pending after timeout. Last status: [{}] {}", resp.statusCode(), buildStatusResponse);
         } else {
-            String message = String.format("Unexpected response for '%s': [%d] %s", uri, resp.statusCode(), resp.body());
-            throw new IllegalStateException(message);
+            log.debug("Wave container available in {} [{}] {}", buildStatusResponse.duration, resp.statusCode(), buildStatusResponse);
         }
-        log.debug("Wave container available in {} [{}] {}", buildStatusResponse.duration, resp.statusCode(), buildStatusResponse);
     }
 
     ServiceInfo serviceInfo() {
