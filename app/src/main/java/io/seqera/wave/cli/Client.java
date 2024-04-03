@@ -218,6 +218,8 @@ public class Client {
             throw new IllegalStateException(message);
         }
     }
+
+    //This method will make sure, that client waits till the image is built and freeze by wave
     protected void awaitStatusComplete(SubmitContainerTokenResponse response) throws IOException {
         final URI uri = URI.create(endpoint + "/v1alpha1/builds/"+response.buildId+"/status");
         final HttpRequest req = HttpRequest.newBuilder()
@@ -231,7 +233,7 @@ public class Client {
         if( resp.statusCode() == 200 ){
             while( resp.statusCode() == 200 && buildStatusResponse.status == BuildStatusResponse.Status.PENDING ) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(10000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
