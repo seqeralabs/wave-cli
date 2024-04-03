@@ -429,7 +429,7 @@ public class App implements Runnable {
         // await build to be completed
         if( await ) {
             try {
-                client.awaitImage(resp);
+                client.awaitImage(resp, request);
             } catch (IOException e) {
                 log.error("Error while waiting for the image to be built", e);
             }

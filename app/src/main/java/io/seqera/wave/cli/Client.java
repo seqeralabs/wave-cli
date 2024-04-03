@@ -189,16 +189,18 @@ public class Client {
         return URI.create(result);
     }
 
-    protected void awaitImage(SubmitContainerTokenResponse response) throws IOException {
-        if(response.buildId != null && !response.cached){
+    protected void awaitImage(SubmitContainerTokenResponse response, SubmitContainerTokenRequest request) throws IOException {
+        if(response.buildId != null && !response.cached || request.freeze){
             awaitStatusComplete(response);
         }else{
+            log.debug("Wave container target: {}", response.targetImage);
             awaitImage0(response.targetImage);
         }
     }
 
     protected void awaitImage0(String image){
         final URI manifest = imageToManifestUri(image);
+        log.debug("Wave container manifest: {}", manifest);
         final HttpRequest req = HttpRequest.newBuilder()
                 .uri(manifest)
                 .headers(REQUEST_HEADERS)
