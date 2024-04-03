@@ -25,6 +25,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Predicate;
@@ -35,7 +36,13 @@ import dev.failsafe.RetryPolicy;
 import dev.failsafe.event.EventListener;
 import dev.failsafe.event.ExecutionAttemptedEvent;
 import dev.failsafe.function.CheckedSupplier;
-import io.seqera.wave.api.*;
+import io.seqera.wave.api.BuildStatusResponse;
+import io.seqera.wave.api.ContainerInspectRequest;
+import io.seqera.wave.api.ContainerInspectResponse;
+import io.seqera.wave.api.ServiceInfo;
+import io.seqera.wave.api.ServiceInfoResponse;
+import io.seqera.wave.api.SubmitContainerTokenRequest;
+import io.seqera.wave.api.SubmitContainerTokenResponse;
 import io.seqera.wave.cli.config.RetryOpts;
 import io.seqera.wave.cli.exception.BadClientResponseException;
 import io.seqera.wave.cli.exception.ClientConnectionException;
@@ -189,72 +196,41 @@ public class Client {
         return URI.create(result);
     }
 
-    protected void awaitImage(SubmitContainerTokenResponse response, SubmitContainerTokenRequest request) throws IOException {
-        if(response.buildId != null && !response.cached || request.freeze){
-            awaitStatusComplete(response);
-        }else{
-            awaitImage0(response.targetImage);
+    void awaitCompletion(String buildId, String imageName) {
+        final long maxAwait = Duration.ofMinutes(15).toMillis();
+        final long startTime = Instant.now().toEpochMilli();
+        while( true ) {
+            if( isComplete(buildId) ) {
+                return;
+            }
+            if( System.currentTimeMillis()-startTime > maxAwait ) {
+                break;
+            }
         }
     }
 
-    protected void awaitImage0(String image){
-        final URI manifest = imageToManifestUri(image);
-        final HttpRequest req = HttpRequest.newBuilder()
-                .uri(manifest)
-                .headers(REQUEST_HEADERS)
-                .timeout(Duration.ofMinutes(5))
-                .GET()
-                .build();
-        final long begin = System.currentTimeMillis();
-        final HttpResponse<String> resp = httpSend(req);
-        final int code = resp.statusCode();
-        if( code>=200 && code<400 ) {
-            final long delta = System.currentTimeMillis()-begin;
-            log.debug("Wave container available in {} [{}] {}", delta, code, resp.body());
-        }
-        else {
-            String message = String.format("Unexpected response for '%s': [%d] %s", manifest, resp.statusCode(), resp.body());
-            throw new IllegalStateException(message);
-        }
-    }
-
-    //This method will make sure, that client waits till the image is built and freeze by wave
-    protected void awaitStatusComplete(SubmitContainerTokenResponse response) throws IOException {
-        final String statusEndpoint = endpoint + "/v1alpha1/builds/"+response.buildId+"/status";
+    protected boolean isComplete(String buildId) {
+        final String statusEndpoint = endpoint + "/v1alpha1/builds/"+buildId+"/status";
         final HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(statusEndpoint))
                 .headers("Content-Type","application/json")
                 .GET()
                 .build();
 
-        int timeoutSeconds = 600;
-        long startTime = System.currentTimeMillis();
-        HttpResponse<String> resp;
-        BuildStatusResponse buildStatusResponse;
-
-        do {
-            resp = httpSend(req);
-            buildStatusResponse = JsonHelper.fromJson(resp.body(), BuildStatusResponse.class);
-
-            if (resp.statusCode() != 200) {
-                String message = String.format("Unexpected response for '%s': [%d] %s",statusEndpoint , resp.statusCode(), resp.body());
-                throw new IllegalStateException(message);
+        try {
+            final HttpResponse<String> resp = httpSend(req);
+            log.debug("Wave response: statusCode={}; body={}", resp.statusCode(), resp.body());
+            if( resp.statusCode()==200 ) {
+                BuildStatusResponse result = JsonHelper.fromJson(resp.body(), BuildStatusResponse.class);
+                return result.status == BuildStatusResponse.Status.COMPLETED;
             }
-
-            if (buildStatusResponse.status == BuildStatusResponse.Status.PENDING) {
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+            else {
+                String msg = String.format("Wave invalid response: [%s] %s", resp.statusCode(), resp.body());
+                throw new BadClientResponseException(msg);
             }
-        } while (System.currentTimeMillis() - startTime < timeoutSeconds * 1000 && buildStatusResponse.status == BuildStatusResponse.Status.PENDING);
-
-        if (buildStatusResponse.status != BuildStatusResponse.Status.COMPLETED) {
-            log.debug("Wave container build still pending after timeout. Last status: [{}] {}", resp.statusCode(), resp.body());
-        } else {
-            log.debug("Wave container available in {} seconds [{}] {}", buildStatusResponse.duration.getSeconds(), resp.statusCode(), resp.body());
+        }
+        catch (IOException | FailsafeException e) {
+            throw new ClientConnectionException("Unable to connect Wave service: " + endpoint, e);
         }
     }
 

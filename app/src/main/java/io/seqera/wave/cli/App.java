@@ -34,7 +34,6 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
@@ -427,13 +426,8 @@ public class App implements Runnable {
         // submit it
         SubmitContainerTokenResponse resp = client.submit(request);
         // await build to be completed
-        if( await ) {
-            try {
-                client.awaitImage(resp, request);
-            } catch (IOException e) {
-                log.error("Error while waiting for the image to be built", e);
-            }
-        }
+        if( await && resp.buildId!=null && !resp.cached )
+            client.awaitCompletion(resp.buildId, resp.targetImage);
         // print the wave container name
         System.out.println(dumpOutput(resp));
     }
@@ -673,22 +667,6 @@ public class App implements Runnable {
                 .map(String::trim)
                 .filter(it -> !isEmpty(it))
                 .collect(Collectors.toList());
-    }
-
-    @Deprecated
-    protected String condaLock() {
-        if( isEmpty(condaPackages) )
-            return null;
-        Optional<String> result = condaPackages
-                .stream()
-                .filter(it->it.startsWith("http://") || it.startsWith("https://"))
-                .findFirst();
-        if( !result.isPresent() )
-            return null;
-        if( condaPackages.size()!=1 ) {
-            throw new IllegalCliArgumentException("No more than one Conda lock remote file can be specified at the same time");
-        }
-        return result.get();
     }
 
     void printInfo() {

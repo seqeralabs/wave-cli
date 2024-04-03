@@ -149,6 +149,16 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"io.seqera.wave.api.BuildStatusResponse",
+  "allDeclaredFields":true,
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.api.BuildStatusResponse$Status",
+  "fields":[{"name":"COMPLETED"}, {"name":"PENDING"}]
+},
+{
   "name":"io.seqera.wave.api.ContainerConfig",
   "allDeclaredFields":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
@@ -200,20 +210,16 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"io.seqera.wave.api.BuildStatusResponse",
-  "allDeclaredFields":true,
-  "queryAllPublicMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"io.seqera.wave.api.BuildStatusResponse$Status",
-  "fields":[{"name":"PENDING"}, {"name":"COMPLETED"}]
-},
-{
   "name":"io.seqera.wave.api.SubmitContainerTokenResponse",
   "allDeclaredFields":true,
   "queryAllPublicMethods":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.api.SubmitContainerTokenResponseBeanInfo"
+},
+{
+  "name":"io.seqera.wave.api.SubmitContainerTokenResponseCustomizer"
 },
 {
   "name":"io.seqera.wave.cli.App",
@@ -227,9 +233,7 @@
 {
   "name":"io.seqera.wave.cli.json.DateTimeAdapter",
   "queryAllDeclaredMethods":true,
-  "methods":[{"name":"deserializeInstant","parameterTypes":["java.lang.String"] },
-    {"name":"serializeInstant","parameterTypes":["java.time.Instant"] },
-    {"name":"deserializeDuration","parameterTypes":["java.lang.String"]}]
+  "methods":[{"name":"deserializeDuration","parameterTypes":["java.lang.String"] }, {"name":"deserializeInstant","parameterTypes":["java.lang.String"] }, {"name":"serializeInstant","parameterTypes":["java.time.Instant"] }]
 },
 {
   "name":"io.seqera.wave.cli.json.PathAdapter",
