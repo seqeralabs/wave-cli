@@ -73,6 +73,7 @@ class AppTest extends Specification {
             containerImage: docker.io/some/container
             containerToken: '12345'
             expiration: '1970-01-20T13:57:19.913Z'
+            freeze: null
             targetImage: docker.io/some/repo
             '''.stripIndent(true)
     }
