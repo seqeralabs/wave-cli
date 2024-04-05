@@ -86,6 +86,7 @@ graalvmNative {
             buildArgs.add('-R:MaxHeapSize=100M')
             buildArgs.add('-R:MinHeapSize=10M')
             buildArgs.add('-R:MaxNewSize=25M')
+            buildArgs.add('--gc=G1')
         }
     }
     toolchainDetection = true
