@@ -76,7 +76,7 @@ graalvmNative {
             configurationFileDirectories.from(file('conf'))
 
             if (System.env.getOrDefault("PLATFORM", "") == "linux-x86_64") {
-                buildArgs(['--static', '--libc=musl'])
+                buildArgs(['--static', '--libc=musl', '--gc=G1'])
             }
 
             javaLauncher = javaToolchains.launcherFor {
@@ -86,7 +86,6 @@ graalvmNative {
             buildArgs.add('-R:MaxHeapSize=100M')
             buildArgs.add('-R:MinHeapSize=10M')
             buildArgs.add('-R:MaxNewSize=25M')
-            buildArgs.add('--gc=G1')
         }
     }
     toolchainDetection = true
