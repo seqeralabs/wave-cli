@@ -51,6 +51,8 @@ import io.seqera.wave.cli.exception.BadClientResponseException;
 import io.seqera.wave.cli.exception.ClientConnectionException;
 import io.seqera.wave.cli.exception.IllegalCliArgumentException;
 import io.seqera.wave.cli.json.JsonHelper;
+import io.seqera.wave.cli.model.ContainerInspectResponseEx;
+import io.seqera.wave.cli.model.ContainerSpecEx;
 import io.seqera.wave.cli.util.BuildInfo;
 import io.seqera.wave.cli.util.CliVersionProvider;
 import io.seqera.wave.cli.util.YamlHelper;
@@ -409,7 +411,8 @@ public class App implements Runnable {
                 ;
 
         final ContainerInspectResponse resp = client.inspect(req);
-        System.out.println(dumpOutput(resp));
+        final ContainerSpecEx spec = new ContainerSpecEx(resp.getContainer());
+        System.out.println(dumpOutput(new ContainerInspectResponseEx(spec)));
     }
 
     @Override
@@ -629,7 +632,7 @@ public class App implements Runnable {
         return resp.targetImage;
     }
 
-    protected String dumpOutput(ContainerInspectResponse resp) {
+    protected String dumpOutput(ContainerInspectResponseEx resp) {
         if( "json".equals(outputFormat) || outputFormat==null ) {
             return JsonHelper.toJson(resp);
         }

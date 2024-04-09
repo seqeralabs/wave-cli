@@ -240,6 +240,18 @@
   "queryAllDeclaredMethods":true
 },
 {
+  "name":"io.seqera.wave.cli.model.ContainerInspectResponseEx",
+  "allDeclaredFields":true
+},
+{
+  "name":"io.seqera.wave.cli.model.ContainerSpecEx",
+  "allDeclaredFields":true
+},
+{
+  "name":"io.seqera.wave.cli.model.LayerRef",
+  "allDeclaredFields":true
+},
+{
   "name":"io.seqera.wave.cli.util.CliVersionProvider",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,

@@ -20,11 +20,11 @@ package io.seqera.wave.cli
 import java.nio.file.Files
 import java.time.Instant
 
-import io.seqera.wave.api.ContainerInspectResponse
 import io.seqera.wave.api.SubmitContainerTokenResponse
+import io.seqera.wave.cli.exception.IllegalCliArgumentException
+import io.seqera.wave.cli.model.ContainerInspectResponseEx
 import io.seqera.wave.core.spec.ContainerSpec
 import io.seqera.wave.util.TarUtils
-import io.seqera.wave.cli.exception.IllegalCliArgumentException
 import picocli.CommandLine
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -103,13 +103,13 @@ class AppTest extends Specification {
         def app = new App()
         String[] args = ["--output", "json"]
         and:
-        def resp = new ContainerInspectResponse( new ContainerSpec('docker.io', 'busybox', 'latest', 'sha:12345', null, null, null) )
+        def resp = new ContainerInspectResponseEx( new ContainerSpec('docker.io', 'https://docker.io', 'busybox', 'latest', 'sha:12345', null, null) )
 
         when:
         new CommandLine(app).parseArgs(args)
         def result = app.dumpOutput(resp)
         then:
-        result == '{"container":{"digest":"sha:12345","imageName":"busybox","reference":"latest","registry":"docker.io"}}'
+        result == '{"container":{"digest":"sha:12345","hostName":"https://docker.io","imageName":"busybox","reference":"latest","registry":"docker.io"}}'
     }
 
     def 'should dump inspect to yaml' () {
@@ -117,7 +117,7 @@ class AppTest extends Specification {
         def app = new App()
         String[] args = ["--output", "yaml"]
         and:
-        def resp = new ContainerInspectResponse( new ContainerSpec('docker.io', 'busybox', 'latest', 'sha:12345', null, null, null) )
+        def resp = new ContainerInspectResponseEx( new ContainerSpec('docker.io', 'https://docker.io', 'busybox', 'latest', 'sha:12345', null, null) )
 
         when:
         new CommandLine(app).parseArgs(args)
@@ -127,6 +127,7 @@ class AppTest extends Specification {
             container:
               config: null
               digest: sha:12345
+              hostName: https://docker.io
               imageName: busybox
               manifest: null
               reference: latest
