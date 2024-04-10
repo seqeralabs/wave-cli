@@ -284,6 +284,6 @@ class AppTest extends Specification {
         app.validateArgs()
         then:
         def e = thrown(IllegalCliArgumentException)
-        e.message == '--awaitTimeout option is only allowed when --await option is user'
+        e.message == '--awaitTimeout option is only allowed when --await option is used'
     }
 }
