@@ -198,6 +198,7 @@ public class Client {
     }
 
     void awaitCompletion(String buildId, Duration await) {
+        log.debug("Waiting for build completion: {} - timeout: {} Seconds", buildId, await.toSeconds());
         final long startTime = Instant.now().toEpochMilli();
         while (!isComplete(buildId)) {
             if (System.currentTimeMillis() - startTime > await.toMillis()) {
