@@ -274,20 +274,24 @@ class AppTest extends Specification {
     def "test valid labels"(){
         given:
         def app = new App()
-        String[] args = ["--label", "key1=value1","--label", "key2=value2"]
+        String[] args = ["--label", "key1=value1","--label", "key2=value2","--label", "key3=this value", "--label", "maintainer=name@company.com"]
 
         when:
         new CommandLine(app).parseArgs(args)
         then:
         app.@labels[0] == "key1=value1"
         app.@labels[1] == "key2=value2"
+        app.@labels[2] == "key3=this value"
+        app.@labels[3] == "maintainer=name@company.com"
 
         when:
         def config = app.prepareConfig()
         then:
         config.labels == [
                 "key1":"value1",
-                "key2":"value2"
+                "key2":"value2",
+                "key3":"this value",
+                "maintainer":"name@company.com"
         ]
     }
 }

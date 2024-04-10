@@ -199,7 +199,7 @@ public class App implements Runnable {
     @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
     List<String> includes;
 
-    @Option(names = {"--label"}, paramLabel = "false", description = "Include one or more labels in the wave build image. e.g. KEY=VALUE")
+    @Option(names = {"--label"}, paramLabel = "false", description = "Add one or more labels to the container image, e.g. KEY=VALUE.")
     List<String> labels;
 
     public static void main(String[] args) {
@@ -387,7 +387,7 @@ public class App implements Runnable {
         // check labels
         if( labels!=null ) {
             for( String it : labels) {
-                if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid docker label syntax - offending value: " + it);
+                if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid container image label syntax - offending value: " + it);
             }
         }
 
@@ -571,12 +571,12 @@ public class App implements Runnable {
         if( size>=10 * _1MB )
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
-        result.labels = createLablesMap(labels);
+        result.labels = createLabelsMap(labels);
         // return the result
         return !result.empty() ? result : null;
     }
 
-    private Map<String, String> createLablesMap(List<String> labelList) {
+    private Map<String, String> createLabelsMap(List<String> labelList) {
         if( labelList != null){
             return labelList.stream()
                     .map(entry -> entry.split("="))
