@@ -197,12 +197,10 @@ public class Client {
         return URI.create(result);
     }
 
-    void awaitCompletion(String buildId, Integer timeout) {
-        timeout = timeout == null ? 15 : timeout;
-        final long maxAwait = Duration.ofMinutes(timeout).toMillis();
+    void awaitCompletion(String buildId, Duration await) {
         final long startTime = Instant.now().toEpochMilli();
         while (!isComplete(buildId)) {
-            if (System.currentTimeMillis() - startTime > maxAwait) {
+            if (System.currentTimeMillis() - startTime > await.toMillis()) {
                 break;
             }
         }

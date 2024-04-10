@@ -30,6 +30,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Base64;
@@ -55,6 +56,7 @@ import io.seqera.wave.cli.model.ContainerInspectResponseEx;
 import io.seqera.wave.cli.model.ContainerSpecEx;
 import io.seqera.wave.cli.util.BuildInfo;
 import io.seqera.wave.cli.util.CliVersionProvider;
+import io.seqera.wave.cli.util.DurationConverter;
 import io.seqera.wave.cli.util.YamlHelper;
 import io.seqera.wave.config.CondaOpts;
 import io.seqera.wave.config.SpackOpts;
@@ -116,11 +118,8 @@ public class App implements Runnable {
     @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64, linux/arm64.")
     private String platform;
 
-    @Option(names = {"--await"}, paramLabel = "false",  description = "Await the container build to be available.")
-    private boolean await;
-
-    @Option(names = {"--await-timeout"}, paramLabel = "false",  description = "Timeout in minutes for awaiting the container build to be available, default is 15 minutes")
-    private Integer awaitTimeout;
+    @Option(names = {"--await"}, paramLabel = "false", arity = "0..1", description = "Await the container build to be available. you can provide a timeout like --await 10m or 2s, by default its 15 minutes.")
+    private Duration await;
 
     @Option(names = {"--context"}, paramLabel = "''",  description = "Directory path where the build context is stored e.g. /some/context/path.")
     private String contextDir;
@@ -199,6 +198,9 @@ public class App implements Runnable {
         try {
             final App app = new App();
             final CommandLine cli = new CommandLine(app);
+
+            //register duration converter
+            cli.registerConverter(Duration.class, new DurationConverter());
 
             // add examples in help
             cli
@@ -371,14 +373,11 @@ public class App implements Runnable {
                 throw new IllegalCliArgumentException("Context path is not a directory - offending value: " + contextDir);
         }
 
-        if( dryRun && await )
+        if( dryRun && await != null )
             throw new IllegalCliArgumentException("Options --dry-run and --await conflicts each other");
 
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
-
-        if( !await && awaitTimeout != null)
-            throw new IllegalCliArgumentException("--awaitTimeout option is only allowed when --await option is used");
 
     }
 
@@ -435,8 +434,8 @@ public class App implements Runnable {
         // submit it
         SubmitContainerTokenResponse resp = client.submit(request);
         // await build to be completed
-        if( await && resp.buildId!=null && !resp.cached )
-            client.awaitCompletion(resp.buildId, awaitTimeout);
+        if( await != null && resp.buildId!=null && !resp.cached )
+            client.awaitCompletion(resp.buildId, await);
         // print the wave container name
         System.out.println(dumpOutput(resp));
     }

@@ -17,7 +17,10 @@
 
 package io.seqera.wave.cli
 
+import io.seqera.wave.cli.util.DurationConverter
+
 import java.nio.file.Files
+import java.time.Duration
 import java.time.Instant
 
 import io.seqera.wave.api.SubmitContainerTokenResponse
@@ -192,7 +195,9 @@ class AppTest extends Specification {
         String[] args = ["-i", "ubuntu:latest","--dry-run", '--await']
 
         when:
-        new CommandLine(app).parseArgs(args)
+        def cli = new CommandLine(app)
+        cli.registerConverter(Duration.class, new DurationConverter())
+        cli.parseArgs(args)
         and:
         app.validateArgs()
         then:
@@ -273,17 +278,54 @@ class AppTest extends Specification {
         app.@towerToken == 'xyz'
     }
 
-    def 'should not allow awaitTimeout without await'(){
+    def 'should get the correct await duration in minutes'(){
         given:
         def app = new App()
-        String[] args = ["-i", "ubuntu:latest", '--await-timeout', 10]
+        String[] args = ["-i", "ubuntu:latest", '--await', '10m']
 
         when:
-        new CommandLine(app).parseArgs(args)
+        def cli = new CommandLine(app)
+        cli.registerConverter(Duration.class, new DurationConverter())
+        cli.parseArgs(args)
         and:
         app.validateArgs()
         then:
-        def e = thrown(IllegalCliArgumentException)
-        e.message == '--awaitTimeout option is only allowed when --await option is used'
+        noExceptionThrown()
+        and:
+        app.@await == Duration.ofMinutes(10)
+    }
+
+    def 'should get the correct await duration in seconds'(){
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest", '--await', '10s']
+
+        when:
+        def cli = new CommandLine(app)
+        cli.registerConverter(Duration.class, new DurationConverter())
+        cli.parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+        and:
+        app.@await == Duration.ofSeconds(10)
+    }
+
+    def 'should get the default await duration'(){
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest", '--await']
+
+        when:
+        def cli = new CommandLine(app)
+        cli.registerConverter(Duration.class, new DurationConverter())
+        cli.parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+        and:
+        app.@await == Duration.ofMinutes(15)
     }
 }
