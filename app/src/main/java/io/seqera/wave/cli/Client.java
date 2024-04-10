@@ -196,14 +196,12 @@ public class Client {
         return URI.create(result);
     }
 
-    void awaitCompletion(String buildId, String imageName) {
-        final long maxAwait = Duration.ofMinutes(15).toMillis();
+    void awaitCompletion(String buildId, Integer timeout) {
+        timeout = timeout == null ? 15 : timeout;
+        final long maxAwait = Duration.ofMinutes(timeout).toMillis();
         final long startTime = Instant.now().toEpochMilli();
-        while( true ) {
-            if( isComplete(buildId) ) {
-                return;
-            }
-            if( System.currentTimeMillis()-startTime > maxAwait ) {
+        while (!isComplete(buildId)) {
+            if (System.currentTimeMillis() - startTime > maxAwait) {
                 break;
             }
         }
@@ -218,6 +216,9 @@ public class Client {
                 .build();
 
         try {
+            //interval of 10 seconds
+            Thread.sleep(10000);
+
             final HttpResponse<String> resp = httpSend(req);
             log.debug("Wave response: statusCode={}; body={}", resp.statusCode(), resp.body());
             if( resp.statusCode()==200 ) {
@@ -229,7 +230,7 @@ public class Client {
                 throw new BadClientResponseException(msg);
             }
         }
-        catch (IOException | FailsafeException e) {
+        catch (IOException | FailsafeException | InterruptedException e) {
             throw new ClientConnectionException("Unable to connect Wave service: " + endpoint, e);
         }
     }

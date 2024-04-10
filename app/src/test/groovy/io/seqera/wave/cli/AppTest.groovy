@@ -273,4 +273,17 @@ class AppTest extends Specification {
         app.@towerToken == 'xyz'
     }
 
+    def 'should not allow awaitTimeout without await'(){
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest", '--await-timeout', 10]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == '--awaitTimeout option is only allowed when --await option is user'
+    }
 }

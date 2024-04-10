@@ -119,6 +119,9 @@ public class App implements Runnable {
     @Option(names = {"--await"}, paramLabel = "false",  description = "Await the container build to be available.")
     private boolean await;
 
+    @Option(names = {"--await-timeout"}, paramLabel = "false",  description = "Timeout in minutes for awaiting the container build to be available, default is 15 minutes")
+    private Integer awaitTimeout;
+
     @Option(names = {"--context"}, paramLabel = "''",  description = "Directory path where the build context is stored e.g. /some/context/path.")
     private String contextDir;
 
@@ -374,6 +377,9 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
+        if( !await && awaitTimeout != null)
+            throw new IllegalCliArgumentException("--awaitTimeout option is only allowed when --await option is user");
+
     }
 
     protected Client client() {
@@ -430,7 +436,7 @@ public class App implements Runnable {
         SubmitContainerTokenResponse resp = client.submit(request);
         // await build to be completed
         if( await && resp.buildId!=null && !resp.cached )
-            client.awaitCompletion(resp.buildId, resp.targetImage);
+            client.awaitCompletion(resp.buildId, awaitTimeout);
         // print the wave container name
         System.out.println(dumpOutput(resp));
     }
