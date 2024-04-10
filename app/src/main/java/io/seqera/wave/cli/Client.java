@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import dev.failsafe.Failsafe;
@@ -217,7 +218,7 @@ public class Client {
 
         try {
             //interval of 10 seconds
-            Thread.sleep(10000);
+            TimeUnit.SECONDS.sleep(10);
 
             final HttpResponse<String> resp = httpSend(req);
             log.debug("Wave response: statusCode={}; body={}", resp.statusCode(), resp.body());

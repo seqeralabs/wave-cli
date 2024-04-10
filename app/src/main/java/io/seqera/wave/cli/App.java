@@ -378,7 +378,7 @@ public class App implements Runnable {
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
         if( !await && awaitTimeout != null)
-            throw new IllegalCliArgumentException("--awaitTimeout option is only allowed when --await option is user");
+            throw new IllegalCliArgumentException("--awaitTimeout option is only allowed when --await option is used");
 
     }
 
