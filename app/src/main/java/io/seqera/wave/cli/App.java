@@ -303,11 +303,6 @@ public class App implements Runnable {
         if( isEmpty(towerToken) && !isEmpty(buildRepository) )
             throw new IllegalCliArgumentException("Specify the Tower access token required to authenticate the access to the build repository either by using the --tower-token option or the TOWER_ACCESS_TOKEN environment variable");
 
-        // Check if imageName is not empty
-        if( imageName != null ){
-            if( "".equals(imageName.trim()) ) throw new IllegalCliArgumentException("The --image-name cannot be an empty string");
-        }
-
         // -- check conda options
         if( !isEmpty(condaFile) && condaPackages!=null )
             throw new IllegalCliArgumentException("Option --conda-file and --conda-package conflict each other");
@@ -365,6 +360,10 @@ public class App implements Runnable {
 
         if( !isEmpty(contextDir) && isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Option --context requires the use of a container file");
+
+        // Check imageName
+        if( isEmpty(imageName) )
+            throw new IllegalCliArgumentException("The --image-name cannot be an empty string");
 
         if( singularity && !freeze )
             throw new IllegalCliArgumentException("Singularity build requires enabling freeze mode");
