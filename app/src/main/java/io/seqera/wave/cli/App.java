@@ -199,7 +199,7 @@ public class App implements Runnable {
     @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
     List<String> includes;
 
-    @Option(names = {"--image-name"}, paramLabel = "false", description = "Overrides wave generated container image name")
+    @Option(names = {"--image-name"}, paramLabel = "false", description = "Defines a custom name for the container image built by Wave")
     String imageName;
 
     public static void main(String[] args) {
