@@ -15,22 +15,21 @@
  *
  */
 
-package io.seqera.wave.cli.exception;
+package io.seqera.wave.cli.model;
+
+import io.seqera.wave.api.ContainerInspectResponse;
+import io.seqera.wave.core.spec.ContainerSpec;
 
 /**
- * Model a client response http error
- * 
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
-public class BadClientResponseException extends RuntimeException {
+public class ContainerInspectResponseEx extends ContainerInspectResponse  {
 
-    public BadClientResponseException(String message) {
-        super(message);
+    public ContainerInspectResponseEx(ContainerInspectResponse response) {
+        super(new ContainerSpecEx(response.getContainer()));
     }
 
-    public BadClientResponseException(String message, Throwable cause) {
-        super(message, cause);
+    public ContainerInspectResponseEx(ContainerSpec spec) {
+        super(new ContainerSpecEx(spec));
     }
-
-
 }

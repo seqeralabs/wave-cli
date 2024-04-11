@@ -15,22 +15,20 @@
  *
  */
 
-package io.seqera.wave.cli.exception;
+package io.seqera.wave.cli.util
 
+
+import spock.lang.Specification
 /**
- * Model a client response http error
- * 
+ *
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
-public class BadClientResponseException extends RuntimeException {
+class StreamHelperTest extends Specification {
 
-    public BadClientResponseException(String message) {
-        super(message);
+    def 'should read from stream' () {
+        expect:
+        StreamHelper.tryReadStream(new ByteArrayInputStream('Hello\nworld!'.bytes)) == 'Hello\nworld!'
+        StreamHelper.tryReadStream(new ByteArrayInputStream('Hello\nworld!\n\n'.bytes)) == 'Hello\nworld!\n\n'
     }
-
-    public BadClientResponseException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 
 }
