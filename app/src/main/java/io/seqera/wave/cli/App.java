@@ -384,13 +384,6 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
-        // check labels
-        if( labels!=null ) {
-            for( String it : labels) {
-                if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid container image label syntax - offending value: " + it);
-            }
-        }
-
     }
 
     protected Client client() {
@@ -538,6 +531,14 @@ public class App implements Runnable {
             result.env = environment;
         }
 
+        //add labels if specified
+        if( labels!=null ) {
+            for( String it : labels) {
+                if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid container image label syntax - offending value: " + it);
+            }
+            result.labels = labels;
+        }
+
         //add the working directory if specified
         if( workingDir != null ){
             if( "".equals(workingDir.trim()) ) throw new IllegalCliArgumentException("The working directory cannot be empty string");
@@ -571,23 +572,9 @@ public class App implements Runnable {
         if( size>=10 * _1MB )
             throw new RuntimeException("Compressed container layers cannot exceed 10 MiB");
 
-        result.labels = createLabelsMap(labels);
         // return the result
         return !result.empty() ? result : null;
     }
-
-    private Map<String, String> createLabelsMap(List<String> labelList) {
-        if( labelList != null){
-            return labelList.stream()
-                    .map(entry -> entry.split("="))
-                    .filter(keyValue -> keyValue.length == 2)
-                    .collect(Collectors.toMap(
-                            keyValue -> keyValue[0],
-                            keyValue -> keyValue[1]));
-            }
-        return null;
-    }
-
 
     private ContainerInspectRequest inspectRequest(String image) {
         return new ContainerInspectRequest()
