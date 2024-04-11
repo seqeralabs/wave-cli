@@ -135,6 +135,9 @@ public class App implements Runnable {
     @Option(names = {"--config-env"}, paramLabel = "''",  description = "Overwrite the environment of the image e.g. NAME=VALUE")
     private List<String> environment;
 
+    @Option(names = {"--config-label"}, paramLabel = "false", description = "Add one or more labels to the container image, e.g. KEY=VALUE.")
+    List<String> labels;
+
     @Option(names = {"--config-cmd"}, paramLabel = "''", description = "Overwrite the default CMD (command) of the image.")
     private String command;
 
@@ -198,9 +201,6 @@ public class App implements Runnable {
 
     @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
     List<String> includes;
-
-    @Option(names = {"--label"}, paramLabel = "false", description = "Add one or more labels to the container image, e.g. KEY=VALUE.")
-    List<String> labels;
 
     public static void main(String[] args) {
         try {
