@@ -136,7 +136,7 @@ public class App implements Runnable {
     private List<String> environment;
 
     @Option(names = {"--config-label"}, paramLabel = "false", description = "Add one or more labels to the container image, e.g. KEY=VALUE.")
-    List<String> labels;
+    private List<String> labels;
 
     @Option(names = {"--config-cmd"}, paramLabel = "''", description = "Overwrite the default CMD (command) of the image.")
     private String command;
