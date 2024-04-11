@@ -114,6 +114,9 @@ public class App implements Runnable {
     @Option(names = {"--cache-repo", "--cache-repository"}, paramLabel = "''", description = "The container repository where image layer created by Wave will stored e.g. docker.io/user/cache.")
     private String cacheRepository;
 
+    @Option(names = {"--image-name"}, paramLabel = "false", description = "Defines a custom name for the container image built by Wave")
+    String imageName;
+
     @Option(names = {"--wave-endpoint"}, paramLabel = "''", description = "Wave service endpoint e.g. https://wave.seqera.io.")
     private String waveEndpoint;
 
@@ -198,9 +201,6 @@ public class App implements Runnable {
 
     @Option(names = {"--include"}, paramLabel = "false", description = "Include one or more containers in the specified base image")
     List<String> includes;
-
-    @Option(names = {"--image-name"}, paramLabel = "false", description = "Defines a custom name for the container image built by Wave")
-    String imageName;
 
     public static void main(String[] args) {
         try {
@@ -303,6 +303,11 @@ public class App implements Runnable {
         if( isEmpty(towerToken) && !isEmpty(buildRepository) )
             throw new IllegalCliArgumentException("Specify the Tower access token required to authenticate the access to the build repository either by using the --tower-token option or the TOWER_ACCESS_TOKEN environment variable");
 
+        // Check if imageName is not empty
+        if( imageName != null ){
+            if( "".equals(imageName.trim()) ) throw new IllegalCliArgumentException("The --image-name cannot be an empty string");
+        }
+
         // -- check conda options
         if( !isEmpty(condaFile) && condaPackages!=null )
             throw new IllegalCliArgumentException("Option --conda-file and --conda-package conflict each other");
@@ -383,11 +388,6 @@ public class App implements Runnable {
         if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
             throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
 
-        // Check if imageName is not empty
-        if( imageName != null ){
-            if( "".equals(imageName.trim()) ) throw new IllegalCliArgumentException("The --image-name cannot be an empty string");
-        }
-
     }
 
     protected Client client() {
@@ -404,6 +404,7 @@ public class App implements Runnable {
                 .withTimestamp(OffsetDateTime.now())
                 .withBuildRepository(buildRepository)
                 .withCacheRepository(cacheRepository)
+                .withImageName(imageName)
                 .withBuildContext(buildContext)
                 .withContainerConfig(containerConfig)
                 .withTowerAccessToken(towerToken)
@@ -413,7 +414,7 @@ public class App implements Runnable {
                 .withFreezeMode(freeze)
                 .withDryRun(dryRun)
                 .withContainerIncludes(includes)
-                .withImageName(imageName);
+                ;
     }
 
     public void inspect() {
