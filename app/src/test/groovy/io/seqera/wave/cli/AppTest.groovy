@@ -295,6 +295,21 @@ class AppTest extends Specification {
         app.@imageName == 'foo'
     }
 
+    def 'should throw exception with empty imageName' () {
+        given:
+        def app = new App()
+        String[] args = [ '-f', 'Dockerfile','--image-name', " "]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == "The --image-name cannot be an empty string"
+    }
+
     def 'should get the correct await duration in minutes'(){
         given:
         def app = new App()

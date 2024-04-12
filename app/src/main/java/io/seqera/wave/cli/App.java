@@ -378,7 +378,7 @@ public class App implements Runnable {
             throw new IllegalCliArgumentException("Option --context requires the use of a container file");
 
         // Check imageName
-        if( isEmpty(imageName) )
+        if( imageName != null && imageName.trim().isEmpty())
             throw new IllegalCliArgumentException("The --image-name cannot be an empty string");
 
         if( singularity && !freeze )
