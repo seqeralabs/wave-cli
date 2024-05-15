@@ -21,24 +21,25 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.seqera:wave-api:0.7.1'
-    implementation 'io.seqera:wave-utils:0.9.0'
+    implementation 'io.seqera:wave-api:0.9.1'
+    implementation 'io.seqera:wave-utils:0.12.0'
     implementation 'info.picocli:picocli:4.6.1'
     implementation 'com.squareup.moshi:moshi:1.15.0'
     implementation 'com.squareup.moshi:moshi-adapters:1.14.0'
     implementation 'dev.failsafe:failsafe:3.1.0'
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'org.yaml:snakeyaml:2.1'
+    implementation 'dev.langchain4j:langchain4j-open-ai:0.29.0'
     annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
 
-    testImplementation "org.codehaus.groovy:groovy:3.0.15"
-    testImplementation "org.codehaus.groovy:groovy-nio:3.0.15"
-    testImplementation ("org.codehaus.groovy:groovy-test:3.0.17")
+    testImplementation "org.codehaus.groovy:groovy:3.0.21"
+    testImplementation "org.codehaus.groovy:groovy-nio:3.0.21"
+    testImplementation ("org.codehaus.groovy:groovy-test:3.0.21")
+    testImplementation ("org.codehaus.groovy:groovy-json:3.0.21")
     testImplementation ("cglib:cglib-nodep:3.3.0")
     testImplementation ("org.objenesis:objenesis:3.2")
     testImplementation ("org.spockframework:spock-core:2.3-groovy-3.0") { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
     testImplementation ('org.spockframework:spock-junit4:2.3-groovy-3.0') { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
-    testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
 }
 
 test {
@@ -76,7 +77,7 @@ graalvmNative {
             configurationFileDirectories.from(file('conf'))
 
             if (System.env.getOrDefault("PLATFORM", "") == "linux-x86_64") {
-                buildArgs(['--static', '--libc=musl'])
+                buildArgs(['--static', '--libc=musl', '--gc=G1'])
             }
 
             javaLauncher = javaToolchains.launcherFor {
