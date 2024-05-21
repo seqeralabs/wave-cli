@@ -31,7 +31,7 @@ public class LayerRefAdapter{
     public LayerRef toJson(ObjectRef objectRef) {
         if(objectRef instanceof LayerRef) {
             return (LayerRef) objectRef;
-        } else{
+        } else {
             return new LayerRef(objectRef, null);
         }
     }
