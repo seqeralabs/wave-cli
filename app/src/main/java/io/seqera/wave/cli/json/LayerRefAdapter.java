@@ -17,16 +17,13 @@
 
 package io.seqera.wave.cli.json;
 
-import com.squareup.moshi.FromJson;
 import com.squareup.moshi.ToJson;
 import io.seqera.wave.cli.model.LayerRef;
 import io.seqera.wave.core.spec.ObjectRef;
-
-import java.io.IOException;
 /**
  * Layer Ref adapter for Moshi JSON serialisation
  *
- * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
+ * @author Munish Chouhan <munish.chouhan@seqera.io>
  */
 public class LayerRefAdapter{
 
