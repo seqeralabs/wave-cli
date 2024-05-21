@@ -66,8 +66,20 @@ import io.seqera.wave.util.DockerIgnoreFilter;
 import io.seqera.wave.util.Packer;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+
 import static io.seqera.wave.cli.util.Checkers.isEmpty;
 import static io.seqera.wave.cli.util.Checkers.isEnvVar;
+import static io.seqera.wave.cli.util.Checkers.isLabel;
+import static io.seqera.wave.util.DockerHelper.addPackagesToSpackFile;
+import static io.seqera.wave.util.DockerHelper.condaFileFromPackages;
+import static io.seqera.wave.util.DockerHelper.condaFileFromPath;
+import static io.seqera.wave.util.DockerHelper.condaFileToDockerFile;
+import static io.seqera.wave.util.DockerHelper.condaFileToSingularityFile;
+import static io.seqera.wave.util.DockerHelper.condaPackagesToDockerFile;
+import static io.seqera.wave.util.DockerHelper.condaPackagesToSingularityFile;
+import static io.seqera.wave.util.DockerHelper.spackFileToDockerFile;
+import static io.seqera.wave.util.DockerHelper.spackFileToSingularityFile;
+import static io.seqera.wave.util.DockerHelper.spackPackagesToSpackFile;
 import static io.seqera.wave.cli.util.StreamHelper.tryReadStdin;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Option;
@@ -134,6 +146,9 @@ public class App implements Runnable {
 
     @Option(names = {"--config-env"}, paramLabel = "''",  description = "Overwrite the environment of the image e.g. NAME=VALUE")
     private List<String> environment;
+
+    @Option(names = {"--config-label"}, paramLabel = "false", description = "Add one or more labels to the container image, e.g. KEY=VALUE.")
+    private List<String> labels;
 
     @Option(names = {"--config-cmd"}, paramLabel = "''", description = "Overwrite the default CMD (command) of the image.")
     private String command;
@@ -402,6 +417,7 @@ public class App implements Runnable {
     }
 
     protected SubmitContainerTokenRequest createRequest() {
+
         return new SubmitContainerTokenRequest()
                 .withContainerImage(image)
                 .withContainerFile(containerFileBase64())
@@ -539,6 +555,14 @@ public class App implements Runnable {
                 if( !isEnvVar(it) ) throw new IllegalCliArgumentException("Invalid environment variable syntax - offending value: " + it);
             }
             result.env = environment;
+        }
+
+        //add labels if specified
+        if( labels!=null ) {
+            for( String it : labels) {
+                if( !isLabel(it) ) throw new IllegalCliArgumentException("Invalid container image label syntax - offending value: " + it);
+            }
+            result.labels = labels;
         }
 
         //add the working directory if specified

@@ -17,6 +17,7 @@
 
 package io.seqera.wave.cli
 
+import io.seqera.wave.api.ContainerConfig
 import io.seqera.wave.cli.util.DurationConverter
 
 import java.nio.file.Files
@@ -276,6 +277,28 @@ class AppTest extends Specification {
         app.@freeze
         app.@buildRepository == 'docker.io/foo'
         app.@towerToken == 'xyz'
+    }
+
+    def "test valid labels"(){
+        given:
+        def app = new App()
+        String[] args = ["--config-label", "key1=value1","--config-label", "key2=this value2", "--config-label", "maintainer=name@company.com"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        then:
+        app.@labels[0] == "key1=value1"
+        app.@labels[1] == "key2=this value2"
+        app.@labels[2] == "maintainer=name@company.com"
+
+        when:
+        def config = app.prepareConfig()
+        then:
+        config.labels == [
+                "key1=value1",
+                "key2=this value2",
+                "maintainer=name@company.com"
+        ]
     }
 
     def 'should get the correct await duration in minutes'(){
