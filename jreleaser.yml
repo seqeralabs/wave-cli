@@ -90,7 +90,7 @@ distributions:
         platform: windows-x86_64
         extraProperties:
           graalVMNativeImage: true
-      - path: "nativeCompile-macos-latest/wave"
+      - path: "nativeCompile-macos-12/wave"
         transform: "wave-{{projectEffectiveVersion}}-macos-x86_64"
         platform: osx-x86_64
         extraProperties:
@@ -104,7 +104,7 @@ distributions:
   wave-cli-jar:
     type: SINGLE_JAR
     artifacts:
-      - path: "wave_jar/wave.jar"
+      - path: "wave-jar/wave.jar"
         transform: "wave-{{projectEffectiveVersion}}.jar"
 
 packagers:

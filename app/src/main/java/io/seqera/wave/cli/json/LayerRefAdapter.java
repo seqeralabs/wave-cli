@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Seqera Labs
+ * Copyright 2024, Seqera Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,24 @@
  *
  */
 
-package io.seqera.wave.cli.exception;
+package io.seqera.wave.cli.json;
 
+import com.squareup.moshi.ToJson;
+import io.seqera.wave.cli.model.LayerRef;
+import io.seqera.wave.core.spec.ObjectRef;
 /**
- * Model a client response http error
- * 
- * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
+ * Layer Ref adapter for Moshi JSON serialisation
+ *
+ * @author Munish Chouhan <munish.chouhan@seqera.io>
  */
-public class BadClientResponseException extends RuntimeException {
+public class LayerRefAdapter{
 
-    public BadClientResponseException(String message) {
-        super(message);
+    @ToJson
+    public LayerRef toJson(ObjectRef objectRef) {
+        if(objectRef instanceof LayerRef) {
+            return (LayerRef) objectRef;
+        } else {
+            return new LayerRef(objectRef, null);
+        }
     }
-
-    public BadClientResponseException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-
 }

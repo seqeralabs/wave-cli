@@ -15,22 +15,22 @@
  *
  */
 
-package io.seqera.wave.cli.exception;
+package io.seqera.wave.cli.model;
+
+import io.seqera.wave.core.spec.ObjectRef;
 
 /**
- * Model a client response http error
- * 
+ * Extends a {@link ObjectRef} adding the URI attribute
+ *
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
-public class BadClientResponseException extends RuntimeException {
+public class LayerRef extends ObjectRef {
 
-    public BadClientResponseException(String message) {
-        super(message);
+    final public String uri;
+
+    public LayerRef(ObjectRef obj, String uri) {
+        super(obj);
+        this.uri = uri;
     }
-
-    public BadClientResponseException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 
 }

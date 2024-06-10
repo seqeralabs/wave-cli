@@ -18,8 +18,11 @@
 package io.seqera.wave.cli.json
 
 import io.seqera.wave.api.SubmitContainerTokenRequest
-import spock.lang.Specification;
-
+import io.seqera.wave.cli.model.ContainerInspectResponseEx
+import io.seqera.wave.core.spec.ContainerSpec
+import io.seqera.wave.core.spec.ManifestSpec
+import io.seqera.wave.core.spec.ObjectRef
+import spock.lang.Specification
 /**
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
@@ -43,5 +46,42 @@ class JsonHelperTest extends Specification {
         result.containerImage == 'quay.io/nextflow/bash:latest'
     }
 
+    def 'should convert response to json' () {
+        given:
+        def layers = [new ObjectRef('text', 'sha256:12345', 100, null), new ObjectRef('text', 'sha256:67890', 200, null) ]
+        def manifest = new ManifestSpec(2, 'some/media', null, layers, [one: '1', two:'2'])
+        def spec = new ContainerSpec('docker.io', 'https://docker.io', 'ubuntu', '22.04', 'sha:12345', null, manifest)
+        def resp = new ContainerInspectResponseEx(spec)
+
+        when:
+        def result = JsonHelper.toJson(resp)
+        then:
+        result == '''\
+                    {
+                        "container":{   
+                            "digest":
+                            "sha:12345","hostName":"https://docker.io",
+                            "imageName":"ubuntu",
+                            "manifest":{
+                            "annotations":{"one":"1","two":"2"},
+                            "layers":[
+                                {"digest":"sha256:12345",
+                                "mediaType":"text",
+                                "size":100,
+                                "uri":"https://docker.io/v2/ubuntu/blobs/sha256:12345"},
+                                {"digest":"sha256:67890",
+                                "mediaType":"text",
+                                "size":200,
+                                "uri":"https://docker.io/v2/ubuntu/blobs/sha256:67890"}
+                                ],
+                            "mediaType":"some/media",
+                            "schemaVersion":2
+                            },
+                            "reference":"22.04",
+                            "registry":"docker.io"
+                        }
+                    }
+                '''.replaceAll("\\s+", "").trim()
+    }
 
 }

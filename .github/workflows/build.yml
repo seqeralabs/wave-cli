@@ -20,12 +20,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, macos-latest-xlarge, windows-latest]
+        os: [ubuntu-latest, macos-12, macos-latest-xlarge, windows-latest]
         include:
           - os: ubuntu-latest
             fatjar: true
             musl: true
-          - os: macos-latest
+          - os: macos-12
             codesign: true
           - os: macos-latest-xlarge
             codesign: true
@@ -33,7 +33,7 @@ jobs:
       - name: Environment
         run: env | sort
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: graalvm/setup-graalvm@v1
         if: ${{ matrix.musl }}
@@ -60,9 +60,9 @@ jobs:
 
       - name: Upload fat JAR artifact
         if: ${{ matrix.fatjar }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: wave_jar
+          name: wave-jar
           path: ./app/build/libs/wave.jar
 
       - name: Build static native
@@ -104,14 +104,14 @@ jobs:
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nativeCompile-${{ matrix.os }}
           path: ./app/build/native/nativeCompile
 
       - name: Publish tests report
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-reports-jdk-${{ matrix.java_version }}
           path: |
@@ -123,15 +123,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Download all build artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
 
       - name: Setup Java for JReleaser
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'adopt'
@@ -151,7 +151,7 @@ jobs:
 
       - name: JReleaser release output
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jreleaser-release
           path: |
