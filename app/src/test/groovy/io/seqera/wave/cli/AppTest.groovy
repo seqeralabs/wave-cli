@@ -78,6 +78,7 @@ class AppTest extends Specification {
             containerToken: '12345'
             expiration: '1970-01-20T13:57:19.913Z'
             freeze: null
+            mirror: null
             targetImage: docker.io/some/repo
             '''.stripIndent(true)
     }
@@ -387,6 +388,54 @@ class AppTest extends Specification {
         def e = thrown(CommandLine.ParameterException)
         and:
         e.getMessage() == "Invalid value for option '--name-strategy': expected one of [none, tagPrefix, imageSuffix] (case-sensitive) but was 'wrong'"
+    }
+
+    def 'should fail when specifying mirror registry and container file' () {
+        given:
+        def app = new App()
+        String[] args = ["--mirror-to", "docker.io", "-f", "foo"]
+
+        when:
+        def cli = new CommandLine(app)
+        cli.parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        and:
+        e.getMessage() == "Argument --mirror-to and --containerfile conflict each other"
+    }
+
+    def 'should fail when specifying mirror registry and conda package' () {
+        given:
+        def app = new App()
+        String[] args = ["--mirror-to", "docker.io", "--conda-package", "foo"]
+
+        when:
+        def cli = new CommandLine(app)
+        cli.parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        and:
+        e.getMessage() == "Argument --mirror-to and --conda-package conflict each other"
+    }
+
+    def 'should fail when specifying mirror registry and freeze' () {
+        given:
+        def app = new App()
+        String[] args = ["--mirror-to", "docker.io", "--image", "foo", "--freeze"]
+
+        when:
+        def cli = new CommandLine(app)
+        cli.parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        and:
+        e.getMessage() == "Argument --mirror-to and --freeze conflict each other"
     }
 
 }
