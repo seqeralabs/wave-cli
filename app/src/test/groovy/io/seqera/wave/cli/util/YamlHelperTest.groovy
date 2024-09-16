@@ -40,7 +40,8 @@ class YamlHelperTest extends Specification {
                 expiration: Instant.ofEpochMilli(1691839913),
                 buildId: '98765',
                 cached: false,
-                freeze: false
+                freeze: false,
+                mirror: false
         )
 
         when:
@@ -53,6 +54,7 @@ class YamlHelperTest extends Specification {
             containerToken: '12345'
             expiration: '1970-01-20T13:57:19.913Z'
             freeze: false
+            mirror: false
             targetImage: docker.io/some/repo
             '''.stripIndent(true)
     }
