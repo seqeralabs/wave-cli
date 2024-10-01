@@ -221,7 +221,7 @@
 },
 {
   "name":"io.seqera.wave.api.BuildStatusResponse$Status",
-  "fields":[{"name":"COMPLETED"}, {"name":"PENDING"}]
+  "fields":[{"name":"BUILDING"}, {"name":"COMPLETED"}, {"name":"PENDING"}, {"name":"SCANNING"}]
 },
 {
   "name":"io.seqera.wave.api.ContainerConfig",
@@ -251,6 +251,15 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"io.seqera.wave.api.ContainerStatus",
+  "fields":[{"name":"BUILDING"}, {"name":"PENDING"}, {"name":"READY"}, {"name":"SCANNING"}]
+},
+{
+  "name":"io.seqera.wave.api.ContainerStatusResponse",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"io.seqera.wave.api.PackagesSpec",
   "allDeclaredFields":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
@@ -258,6 +267,14 @@
 {
   "name":"io.seqera.wave.api.PackagesSpec$Type",
   "fields":[{"name":"CONDA"}, {"name":"SPACK"}]
+},
+{
+  "name":"io.seqera.wave.api.ScanLevel",
+  "fields":[{"name":"critical"}, {"name":"high"}, {"name":"low"}, {"name":"medium"}]
+},
+{
+  "name":"io.seqera.wave.api.ScanMode",
+  "fields":[{"name":"async"}, {"name":"lazy"}, {"name":"none"}, {"name":"off"}, {"name":"sync"}]
 },
 {
   "name":"io.seqera.wave.api.ServiceInfo",
@@ -325,6 +342,17 @@
 {
   "name":"io.seqera.wave.cli.model.LayerRef",
   "allDeclaredFields":true
+},
+{
+  "name":"io.seqera.wave.cli.model.SubmitContainerTokenResponseEx",
+  "allDeclaredFields":true,
+  "queryAllPublicMethods":true
+},
+{
+  "name":"io.seqera.wave.cli.model.SubmitContainerTokenResponseExBeanInfo"
+},
+{
+  "name":"io.seqera.wave.cli.model.SubmitContainerTokenResponseExCustomizer"
 },
 {
   "name":"io.seqera.wave.cli.util.CliVersionProvider",

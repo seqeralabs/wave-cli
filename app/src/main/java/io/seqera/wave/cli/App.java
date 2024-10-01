@@ -44,9 +44,11 @@ import io.seqera.wave.api.*;
 import io.seqera.wave.cli.exception.BadClientResponseException;
 import io.seqera.wave.cli.exception.ClientConnectionException;
 import io.seqera.wave.cli.exception.IllegalCliArgumentException;
+import io.seqera.wave.cli.exception.ReadyTimeoutException;
 import io.seqera.wave.cli.json.JsonHelper;
 import io.seqera.wave.cli.model.ContainerInspectResponseEx;
 import io.seqera.wave.cli.model.ContainerSpecEx;
+import io.seqera.wave.cli.model.SubmitContainerTokenResponseEx;
 import io.seqera.wave.cli.util.BuildInfo;
 import io.seqera.wave.cli.util.CliVersionProvider;
 import io.seqera.wave.cli.util.DurationConverter;
@@ -197,6 +199,12 @@ public class App implements Runnable {
     @Option(names = {"--mirror-to"}, paramLabel = "false", description = "Specify registry where the container should be mirrored e.g. 'docker.io'")
     private String mirrorToRegistry;
 
+    @Option(names = {"--scan-mode"}, paramLabel = "false", description = "Specify container security scan mode, it can be 'none', 'lazy' 'async' or 'sync'")
+    private ScanMode scanMode;
+
+    @Option(names = {"--scan-level"}, paramLabel = "false", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
+    private List<ScanLevel> scanLevels;
+
     @CommandLine.Parameters
     List<String> prompt;
 
@@ -247,7 +255,7 @@ public class App implements Runnable {
             }
         }
         catch (IllegalCliArgumentException | CommandLine.ParameterException | BadClientResponseException |
-               ClientConnectionException e) {
+               ReadyTimeoutException | ClientConnectionException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         }
@@ -440,6 +448,8 @@ public class App implements Runnable {
                 .withContainerIncludes(includes)
                 .withNameStrategy(nameStrategy)
                 .withMirrorRegistry(mirrorToRegistry)
+                .withScanMode(scanMode)
+                .withScanLevels(scanLevels)
                 ;
     }
 
@@ -471,10 +481,16 @@ public class App implements Runnable {
         // submit it
         SubmitContainerTokenResponse resp = client.submit(request);
         // await build to be completed
-        if( await != null && resp.buildId!=null && !resp.cached )
-            client.awaitCompletion(resp.buildId, await);
-        // print the wave container name
-        System.out.println(dumpOutput(resp));
+        if( await != null && resp.status!=null && resp.status!=ContainerStatus.READY ) {
+            ContainerStatusResponse status = client.awaitReadiness(resp.requestId, await);
+            // print the wave container name
+            System.out.println(dumpOutput(new SubmitContainerTokenResponseEx(resp, status)));
+        }
+        else {
+            // print the wave container name
+            System.out.println(dumpOutput(resp));
+        }
+
     }
 
     private String encodePathBase64(String value) {

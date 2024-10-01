@@ -17,16 +17,20 @@
 
 package io.seqera.wave.cli
 
-import io.seqera.wave.api.ImageNameStrategy
-import io.seqera.wave.cli.util.DurationConverter
-
 import java.nio.file.Files
 import java.time.Duration
 import java.time.Instant
 
+import io.seqera.wave.api.ContainerStatus
+import io.seqera.wave.api.ContainerStatusResponse
+import io.seqera.wave.api.ImageNameStrategy
+import io.seqera.wave.api.ScanLevel
+import io.seqera.wave.api.ScanMode
 import io.seqera.wave.api.SubmitContainerTokenResponse
 import io.seqera.wave.cli.exception.IllegalCliArgumentException
 import io.seqera.wave.cli.model.ContainerInspectResponseEx
+import io.seqera.wave.cli.model.SubmitContainerTokenResponseEx
+import io.seqera.wave.cli.util.DurationConverter
 import io.seqera.wave.core.spec.ContainerSpec
 import io.seqera.wave.util.TarUtils
 import picocli.CommandLine
@@ -77,9 +81,56 @@ class AppTest extends Specification {
             containerImage: docker.io/some/container
             containerToken: '12345'
             expiration: '1970-01-20T13:57:19.913Z'
-            freeze: null
-            mirror: null
             targetImage: docker.io/some/repo
+            '''.stripIndent(true)
+    }
+
+    def 'should dump response with status to yaml' () {
+        given:
+        def app = new App()
+        String[] args = ["--output", "yaml"]
+        and:
+        def resp = new SubmitContainerTokenResponse(
+                containerToken: "12345",
+                targetImage: 'docker.io/some/repo',
+                containerImage: 'docker.io/some/container',
+                expiration: Instant.ofEpochMilli(1691839913),
+                buildId: '98765',
+                cached: true
+        )
+        def status = new ContainerStatusResponse(
+                "12345",
+                ContainerStatus.READY,
+                "98765",
+                null,
+                "scan-1234",
+                [medium:1, high:2],
+                true,
+                "All ok",
+                "http://foo.com",
+                Instant.now(),
+                Duration.ofMinutes(1)
+        )
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        def result = app.dumpOutput(new SubmitContainerTokenResponseEx(resp, status))
+        then:
+        result == '''\
+            buildId: '98765'
+            cached: true
+            containerImage: docker.io/some/container
+            containerToken: '12345'
+            detailsUri: http://foo.com
+            duration: PT1M
+            expiration: '1970-01-20T13:57:19.913Z'
+            reason: All ok
+            status: READY
+            succeeded: true
+            targetImage: docker.io/some/repo
+            vulnerabilities:
+              medium: 1
+              high: 2
             '''.stripIndent(true)
     }
 
@@ -130,11 +181,9 @@ class AppTest extends Specification {
         then:
         result == '''\
             container:
-              config: null
               digest: sha:12345
               hostName: https://docker.io
               imageName: busybox
-              manifest: null
               reference: latest
               registry: docker.io
             '''.stripIndent()
@@ -189,6 +238,34 @@ class AppTest extends Specification {
         def req = app.createRequest()
         then:
         req.dryRun
+    }
+
+    def 'should set scan mode' () {
+        given:
+        def app = new App()
+        String[] args = ["--scan-mode", 'async']
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        def req = app.createRequest()
+        then:
+        req.scanMode == ScanMode.async
+        req.scanLevels == null
+    }
+
+    def 'should set scan levels' () {
+        given:
+        def app = new App()
+        String[] args = ["--scan-level", 'low', "--scan-level", 'medium']
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        def req = app.createRequest()
+        then:
+        req.scanMode == null
+        req.scanLevels == List.of(ScanLevel.low, ScanLevel.medium)
     }
 
     def 'should not allow dry-run and await' () {
