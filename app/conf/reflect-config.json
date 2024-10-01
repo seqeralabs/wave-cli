@@ -221,7 +221,7 @@
 },
 {
   "name":"io.seqera.wave.api.BuildStatusResponse$Status",
-  "fields":[{"name":"BUILDING"}, {"name":"COMPLETED"}, {"name":"PENDING"}, {"name":"SCANNING"}]
+  "fields":[{"name":"COMPLETED"}, {"name":"PENDING"}]
 },
 {
   "name":"io.seqera.wave.api.ContainerConfig",
