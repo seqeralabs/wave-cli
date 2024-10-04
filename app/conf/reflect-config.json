@@ -252,7 +252,7 @@
 },
 {
   "name":"io.seqera.wave.api.ContainerStatus",
-  "fields":[{"name":"BUILDING"}, {"name":"PENDING"}, {"name":"READY"}, {"name":"SCANNING"}]
+  "fields":[{"name":"BUILDING"}, {"name":"DONE"}, {"name":"FAILED"}, {"name":"PENDING"}, {"name":"READY"}, {"name":"SCANNING"}]
 },
 {
   "name":"io.seqera.wave.api.ContainerStatusResponse",
@@ -270,11 +270,11 @@
 },
 {
   "name":"io.seqera.wave.api.ScanLevel",
-  "fields":[{"name":"critical"}, {"name":"high"}, {"name":"low"}, {"name":"medium"}]
+  "fields":[{"name":"CRITICAL"}, {"name":"HIGH"}, {"name":"LOW"}, {"name":"MEDIUM"}, {"name":"critical"}, {"name":"high"}, {"name":"low"}, {"name":"medium"}]
 },
 {
   "name":"io.seqera.wave.api.ScanMode",
-  "fields":[{"name":"async"}, {"name":"lazy"}, {"name":"none"}, {"name":"off"}, {"name":"sync"}]
+  "fields":[{"name":"async"}, {"name":"lazy"}, {"name":"none"}, {"name":"off"}, {"name":"required"}, {"name":"sync"}]
 },
 {
   "name":"io.seqera.wave.api.ServiceInfo",

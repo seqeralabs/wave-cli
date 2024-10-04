@@ -206,11 +206,11 @@ public class Client {
         final long startTime = Instant.now().toEpochMilli();
         while ( true ) {
             final ContainerStatusResponse response = checkStatus(requestId);
-            if( response.status==ContainerStatus.READY )
+            if( response.status==ContainerStatus.DONE )
                 return response;
 
             if (System.currentTimeMillis() - startTime > await.toMillis()) {
-                String msg = String.format("Container did not ready status within the max await time (%s)", await.toString());
+                String msg = String.format("Container provisioning did not complete within the max await time (%s)", await.toString());
                 throw new ReadyTimeoutException(msg);
             }
             // await

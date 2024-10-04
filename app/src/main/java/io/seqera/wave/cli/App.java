@@ -481,7 +481,7 @@ public class App implements Runnable {
         // submit it
         SubmitContainerTokenResponse resp = client.submit(request);
         // await build to be completed
-        if( await != null && resp.status!=null && resp.status!=ContainerStatus.READY ) {
+        if( await != null && resp.status!=null && resp.status!=ContainerStatus.DONE ) {
             ContainerStatusResponse status = client.awaitReadiness(resp.requestId, await);
             // print the wave container name
             System.out.println(dumpOutput(new SubmitContainerTokenResponseEx(resp, status)));
@@ -490,7 +490,6 @@ public class App implements Runnable {
             // print the wave container name
             System.out.println(dumpOutput(resp));
         }
-
     }
 
     private String encodePathBase64(String value) {
