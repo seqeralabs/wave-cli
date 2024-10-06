@@ -266,7 +266,7 @@
 },
 {
   "name":"io.seqera.wave.api.PackagesSpec$Type",
-  "fields":[{"name":"CONDA"}, {"name":"SPACK"}]
+  "fields":[{"name":"CONDA"}]
 },
 {
   "name":"io.seqera.wave.api.ScanLevel",
@@ -362,11 +362,6 @@
 },
 {
   "name":"io.seqera.wave.config.CondaOpts",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"io.seqera.wave.config.SpackOpts",
   "allDeclaredFields":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
