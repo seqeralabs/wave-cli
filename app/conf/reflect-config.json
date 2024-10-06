@@ -252,7 +252,7 @@
 },
 {
   "name":"io.seqera.wave.api.ContainerStatus",
-  "fields":[{"name":"BUILDING"}, {"name":"DONE"}, {"name":"FAILED"}, {"name":"PENDING"}, {"name":"READY"}, {"name":"SCANNING"}]
+  "fields":[{"name":"BUILDING"}, {"name":"DONE"}, {"name":"PENDING"}, {"name":"SCANNING"}]
 },
 {
   "name":"io.seqera.wave.api.ContainerStatusResponse",
