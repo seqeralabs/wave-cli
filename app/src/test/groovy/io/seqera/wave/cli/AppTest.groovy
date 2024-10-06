@@ -100,11 +100,11 @@ class AppTest extends Specification {
         )
         def status = new ContainerStatusResponse(
                 "12345",
-                ContainerStatus.READY,
+                ContainerStatus.DONE,
                 "98765",
                 null,
                 "scan-1234",
-                [medium:1, high:2],
+                [MEDIUM:1, HIGH:2],
                 true,
                 "All ok",
                 "http://foo.com",
@@ -125,12 +125,12 @@ class AppTest extends Specification {
             duration: PT1M
             expiration: '1970-01-20T13:57:19.913Z'
             reason: All ok
-            status: READY
+            status: DONE
             succeeded: true
             targetImage: docker.io/some/repo
             vulnerabilities:
-              medium: 1
-              high: 2
+              MEDIUM: 1
+              HIGH: 2
             '''.stripIndent(true)
     }
 
@@ -257,7 +257,7 @@ class AppTest extends Specification {
     def 'should set scan levels' () {
         given:
         def app = new App()
-        String[] args = ["--scan-level", 'low', "--scan-level", 'medium']
+        String[] args = ["--scan-level", 'LOW', "--scan-level", 'MEDIUM']
 
         when:
         new CommandLine(app).parseArgs(args)
@@ -265,7 +265,7 @@ class AppTest extends Specification {
         def req = app.createRequest()
         then:
         req.scanMode == null
-        req.scanLevels == List.of(ScanLevel.low, ScanLevel.medium)
+        req.scanLevels == List.of(ScanLevel.LOW, ScanLevel.MEDIUM)
     }
 
     def 'should not allow dry-run and await' () {
@@ -470,7 +470,7 @@ class AppTest extends Specification {
     def 'should fail when specifying mirror registry and container file' () {
         given:
         def app = new App()
-        String[] args = ["--mirror-to", "docker.io", "-f", "foo"]
+        String[] args = ["--mirror-registry", "docker.io", "-f", "foo"]
 
         when:
         def cli = new CommandLine(app)
@@ -480,13 +480,13 @@ class AppTest extends Specification {
         then:
         def e = thrown(IllegalCliArgumentException)
         and:
-        e.getMessage() == "Argument --mirror-to and --containerfile conflict each other"
+        e.getMessage() == "Argument --mirror-registry and --containerfile conflict each other"
     }
 
     def 'should fail when specifying mirror registry and conda package' () {
         given:
         def app = new App()
-        String[] args = ["--mirror-to", "docker.io", "--conda-package", "foo"]
+        String[] args = ["--mirror-registry", "docker.io", "--conda-package", "foo"]
 
         when:
         def cli = new CommandLine(app)
@@ -496,13 +496,13 @@ class AppTest extends Specification {
         then:
         def e = thrown(IllegalCliArgumentException)
         and:
-        e.getMessage() == "Argument --mirror-to and --conda-package conflict each other"
+        e.getMessage() == "Argument --mirror-registry and --conda-package conflict each other"
     }
 
     def 'should fail when specifying mirror registry and freeze' () {
         given:
         def app = new App()
-        String[] args = ["--mirror-to", "docker.io", "--image", "foo", "--freeze"]
+        String[] args = ["--mirror-registry", "docker.io", "--image", "foo", "--freeze"]
 
         when:
         def cli = new CommandLine(app)
@@ -512,7 +512,7 @@ class AppTest extends Specification {
         then:
         def e = thrown(IllegalCliArgumentException)
         and:
-        e.getMessage() == "Argument --mirror-to and --freeze conflict each other"
+        e.getMessage() == "Argument --mirror-registry and --freeze conflict each other"
     }
 
 }

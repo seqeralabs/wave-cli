@@ -186,10 +186,10 @@ public class App implements Runnable {
     @Option(names = {"--name-strategy"}, paramLabel = "false", description = "Specify the name strategy for the container name, it can be 'none' or 'tagPrefix' or 'imageSuffix'", hidden = true)
     private ImageNameStrategy nameStrategy;
 
-    @Option(names = {"--mirror-to"}, paramLabel = "false", description = "Specify registry where the container should be mirrored e.g. 'docker.io'")
-    private String mirrorToRegistry;
+    @Option(names = {"-m","--mirror-registry"}, paramLabel = "false", description = "Specify registry where the container should be mirrored e.g. 'docker.io'")
+    private String mirrorRegistry;
 
-    @Option(names = {"--scan-mode"}, paramLabel = "false", description = "Specify container security scan mode, it can be 'none', 'lazy' 'async' or 'sync'")
+    @Option(names = {"--scan-mode"}, paramLabel = "false", description = "Specify container security scan mode, it can be 'none', 'async' or 'required'")
     private ScanMode scanMode;
 
     @Option(names = {"--scan-level"}, paramLabel = "false", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
@@ -354,26 +354,26 @@ public class App implements Runnable {
                 throw new IllegalCliArgumentException("Context path is not a directory - offending value: " + contextDir);
         }
 
-        if( !isEmpty(mirrorToRegistry) && !isEmpty(containerFile) )
-            throw new IllegalCliArgumentException("Argument --mirror-to and --containerfile conflict each other");
+        if( !isEmpty(mirrorRegistry) && !isEmpty(containerFile) )
+            throw new IllegalCliArgumentException("Argument --mirror-registry and --containerfile conflict each other");
 
-        if( !isEmpty(mirrorToRegistry) && !isEmpty(condaFile) )
-            throw new IllegalCliArgumentException("Argument --mirror-to and --conda-file conflict each other");
+        if( !isEmpty(mirrorRegistry) && !isEmpty(condaFile) )
+            throw new IllegalCliArgumentException("Argument --mirror-registry and --conda-file conflict each other");
 
-        if( !isEmpty(mirrorToRegistry) && !isEmpty(condaPackages) )
-            throw new IllegalCliArgumentException("Argument --mirror-to and --conda-package conflict each other");
+        if( !isEmpty(mirrorRegistry) && !isEmpty(condaPackages) )
+            throw new IllegalCliArgumentException("Argument --mirror-registry and --conda-package conflict each other");
 
-        if( !isEmpty(mirrorToRegistry) && !isEmpty(contextDir) )
-            throw new IllegalCliArgumentException("Argument --mirror-to and --context conflict each other");
+        if( !isEmpty(mirrorRegistry) && !isEmpty(contextDir) )
+            throw new IllegalCliArgumentException("Argument --mirror-registry and --context conflict each other");
 
-        if( !isEmpty(mirrorToRegistry) && freeze )
-            throw new IllegalCliArgumentException("Argument --mirror-to and --freeze conflict each other");
+        if( !isEmpty(mirrorRegistry) && freeze )
+            throw new IllegalCliArgumentException("Argument --mirror-registry and --freeze conflict each other");
 
-        if( !isEmpty(mirrorToRegistry) && !isEmpty(buildRepository) )
-            throw new IllegalCliArgumentException("Argument --mirror-to and --build-repository conflict each other");
+        if( !isEmpty(mirrorRegistry) && !isEmpty(buildRepository) )
+            throw new IllegalCliArgumentException("Argument --mirror-registry and --build-repository conflict each other");
 
-        if( !isEmpty(mirrorToRegistry) && !isEmpty(cacheRepository) )
-            throw new IllegalCliArgumentException("Argument --mirror-to and --cache-repository conflict each other");
+        if( !isEmpty(mirrorRegistry) && !isEmpty(cacheRepository) )
+            throw new IllegalCliArgumentException("Argument --mirror-registry and --cache-repository conflict each other");
 
         if( dryRun && await != null )
             throw new IllegalCliArgumentException("Options --dry-run and --await conflicts each other");
@@ -406,7 +406,7 @@ public class App implements Runnable {
                 .withDryRun(dryRun)
                 .withContainerIncludes(includes)
                 .withNameStrategy(nameStrategy)
-                .withMirrorRegistry(mirrorToRegistry)
+                .withMirrorRegistry(mirrorRegistry)
                 .withScanMode(scanMode)
                 .withScanLevels(scanLevels)
                 ;
