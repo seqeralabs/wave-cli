@@ -57,6 +57,7 @@ import io.seqera.wave.cli.util.YamlHelper;
 import io.seqera.wave.config.CondaOpts;
 import io.seqera.wave.util.DockerIgnoreFilter;
 import io.seqera.wave.util.Packer;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import static io.seqera.wave.cli.util.Checkers.isEmpty;
@@ -441,7 +442,7 @@ public class App implements Runnable {
         SubmitContainerTokenResponse resp = client.submit(request);
         // await build to be completed
         if( await != null && resp.status!=null && resp.status!=ContainerStatus.DONE ) {
-            ContainerStatusResponse status = client.awaitReadiness(resp.requestId, await);
+            ContainerStatusResponse status = client.awaitCompletion(resp.requestId, await);
             // print the wave container name
             System.out.println(dumpOutput(new SubmitContainerTokenResponseEx(resp, status)));
         }
@@ -618,6 +619,18 @@ public class App implements Runnable {
         }
 
         return null;
+    }
+
+    protected String dumpOutput(SubmitContainerTokenResponseEx resp) {
+        if( outputFormat==null && !resp.succeeded ) {
+            String message = "Container provisioning did not complete successfully";
+            if( !StringUtils.isEmpty(resp.reason) )
+                message += "\n- Reason: " + resp.reason;
+            if( !StringUtils.isEmpty(resp.detailsUri) )
+                message += "\n- Find out more here: " + resp.detailsUri;
+            throw new BadClientResponseException(message);
+        }
+        return dumpOutput((SubmitContainerTokenResponse)resp);
     }
 
     protected String dumpOutput(SubmitContainerTokenResponse resp) {

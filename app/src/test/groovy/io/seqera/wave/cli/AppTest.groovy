@@ -27,6 +27,7 @@ import io.seqera.wave.api.ImageNameStrategy
 import io.seqera.wave.api.ScanLevel
 import io.seqera.wave.api.ScanMode
 import io.seqera.wave.api.SubmitContainerTokenResponse
+import io.seqera.wave.cli.exception.BadClientResponseException
 import io.seqera.wave.cli.exception.IllegalCliArgumentException
 import io.seqera.wave.cli.model.ContainerInspectResponseEx
 import io.seqera.wave.cli.model.SubmitContainerTokenResponseEx
@@ -132,6 +133,45 @@ class AppTest extends Specification {
               MEDIUM: 1
               HIGH: 2
             '''.stripIndent(true)
+    }
+
+    def 'should throw exception on failure' (){
+        given:
+        def app = new App()
+        String[] args = []
+        and:
+        def resp = new SubmitContainerTokenResponse(
+                containerToken: "12345",
+                targetImage: 'docker.io/some/repo',
+                containerImage: 'docker.io/some/container',
+                expiration: Instant.ofEpochMilli(1691839913),
+                buildId: '98765',
+                cached: false
+        )
+        def status = new ContainerStatusResponse(
+                "12345",
+                ContainerStatus.DONE,
+                "98765",
+                null,
+                "scan-1234",
+                [MEDIUM:1, HIGH:2],
+                false,
+                "Something went wrong",
+                "http://foo.com/bar/1234",
+                Instant.now(),
+                Duration.ofMinutes(1)
+        )
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        app.dumpOutput(new SubmitContainerTokenResponseEx(resp, status))
+        then:
+        def e = thrown(BadClientResponseException)
+        e.message == '''\
+            Container provisioning did not complete successfully
+            - Reason: Something went wrong
+            - Find out more here: http://foo.com/bar/1234\
+            '''.stripIndent()
     }
 
     def 'should dump response to json' () {

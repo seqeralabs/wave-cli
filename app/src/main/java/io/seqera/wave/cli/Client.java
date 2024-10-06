@@ -199,7 +199,7 @@ public class Client {
         return URI.create(result);
     }
 
-    ContainerStatusResponse awaitReadiness(String requestId, Duration await) {
+    ContainerStatusResponse awaitCompletion(String requestId, Duration await) {
         if( StringUtils.isEmpty(requestId) )
             throw new IllegalArgumentException("Argument 'requestId' cannot be empty");
         log.debug("Waiting for build completion: {} - timeout: {} Seconds", requestId, await.toSeconds());
