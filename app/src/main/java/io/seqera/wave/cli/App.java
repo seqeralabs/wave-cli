@@ -348,6 +348,9 @@ public class App implements Runnable {
         if( singularity && !freeze )
             throw new IllegalCliArgumentException("Singularity build requires enabling freeze mode");
 
+        if( inspect && isEmpty(image) )
+            throw new IllegalCliArgumentException("Option --inspect requires the use of container image (--image)");
+
         if( !isEmpty(contextDir) ) {
             // check that a container file has been provided
             if( isEmpty(containerFile) )
