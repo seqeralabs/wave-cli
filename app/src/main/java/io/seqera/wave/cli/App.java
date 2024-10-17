@@ -241,6 +241,8 @@ public class App implements Runnable {
 
             app.setLogLevel();
             app.defaultArgs();
+            // validate the command line args
+            app.validateArgs();
             if( app.info ) {
                 app.printInfo();
             }
@@ -435,8 +437,6 @@ public class App implements Runnable {
 
     @Override
     public void run() {
-        // validate the command line args
-        validateArgs();
         // prepare the request
         buildContext = prepareContext();
         containerConfig = prepareConfig();
