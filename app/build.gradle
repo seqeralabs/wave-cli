@@ -83,7 +83,7 @@ graalvmNative {
 
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(21)
-                vendor = JvmVendorSpec.GRAAL_VM
+                vendor = JvmVendorSpec.matching("Oracle Corporation")
             }
             buildArgs.add('--enable-url-protocols=https')
             buildArgs.add('-R:MaxHeapSize=100M')
