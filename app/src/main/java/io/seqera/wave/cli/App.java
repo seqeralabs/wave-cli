@@ -197,6 +197,10 @@ public class App implements Runnable {
     @Option(names = {"--scan-level"}, paramLabel = "false", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
     private List<ScanLevel> scanLevels;
 
+    @Option(names = {"--build-compression"}, paramLabel = "false", description = "Specify the compression algorithm to be used for the build context, it can be 'gzip', 'zstd' or 'estargz'")
+    private BuildCompression.Mode buildCompression;
+
+
     @CommandLine.Parameters
     List<String> prompt;
 
@@ -413,7 +417,14 @@ public class App implements Runnable {
                 .withMirror(mirror)
                 .withScanMode(scanMode)
                 .withScanLevels(scanLevels)
+                .withBuildCompression(compression(buildCompression))
                 ;
+    }
+
+    BuildCompression compression(BuildCompression.Mode mode) {
+        if( mode==null )
+            return null;
+        return new BuildCompression().withMode(mode);
     }
 
     public void inspect() {
