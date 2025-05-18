@@ -197,6 +197,9 @@ public class App implements Runnable {
     @Option(names = {"--scan-level"}, paramLabel = "false", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
     private List<ScanLevel> scanLevels;
 
+    @Option(names = {"--build-template"}, paramLabel = "false", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
+    private String buildTemplate;
+
     @CommandLine.Parameters
     List<String> prompt;
 
@@ -413,6 +416,7 @@ public class App implements Runnable {
                 .withMirror(mirror)
                 .withScanMode(scanMode)
                 .withScanLevels(scanLevels)
+                .withBuildTemplate(buildTemplate)
                 ;
     }
 
