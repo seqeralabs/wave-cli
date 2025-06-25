@@ -125,7 +125,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
       actions: write
     steps:
       - name: Checkout repository
