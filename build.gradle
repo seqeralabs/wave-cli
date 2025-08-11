@@ -1,0 +1,78 @@
+/*
+ * Copyright 2023-2025, Seqera Labs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+plugins {
+    id 'groovy'
+    id 'io.nextflow.nextflow-plugin' version '0.0.1-alpha6'
+}
+
+// read the version from the `VERSION` file
+version = new File(rootDir,'VERSION').text.trim()
+group = 'io.seqera'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://s3-eu-west-1.amazonaws.com/maven.seqera.io/releases" }
+    maven { url = "https://s3-eu-west-1.amazonaws.com/maven.seqera.io/snapshots" }
+}
+
+dependencies {
+    // Nextflow plugin dependencies are automatically handled by the nextflow-plugin gradle plugin
+    
+    // Keep existing Wave API dependencies
+    implementation 'io.seqera:wave-api:0.16.0'
+    implementation 'io.seqera:wave-utils:0.15.1'
+    
+    // CLI and utility dependencies
+    implementation 'info.picocli:picocli:4.6.1'
+    implementation 'com.squareup.moshi:moshi:1.15.2'
+    implementation 'com.squareup.moshi:moshi-adapters:1.15.2'
+    implementation 'dev.failsafe:failsafe:3.1.0'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.yaml:snakeyaml:2.1'
+    implementation 'dev.langchain4j:langchain4j-open-ai:0.29.0'
+    implementation 'org.semver4j:semver4j:5.4.0'
+    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
+    
+    // Bump commons-io version to address security vulnerabilities
+    runtimeOnly 'commons-io:commons-io:2.18.0'
+
+    // Test dependencies - aligned with Nextflow's Groovy 4.x
+    testImplementation "org.spockframework:spock-core:2.3-groovy-4.0"
+    testImplementation "org.spockframework:spock-junit4:2.3-groovy-4.0"
+    testImplementation "cglib:cglib-nodep:3.3.0"
+    testImplementation "org.objenesis:objenesis:3.4"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Plugin configuration - Final working configuration
+// Only these properties are supported by io.nextflow.gradle.NextflowPluginConfig:
+nextflowPlugin {
+    className = 'io.seqera.wave.plugin.WavePlugin'
+    provider = 'Paolo Di Tommaso'
+    description = 'Nextflow plugin providing Wave CLI functionality'
+    nextflowVersion = '25.04.0'
+}

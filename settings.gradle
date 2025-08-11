@@ -21,7 +21,6 @@ plugins {
 }
 
 rootProject.name = 'wave-cli'
-include('app')
 
 // enable for local development
 // includeBuild("../libseqera")

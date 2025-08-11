@@ -1,0 +1,7 @@
+#
+# Nextflow Wave Plugin Extensions Index
+#
+# This file lists all the extension points provided by the Wave plugin
+#
+
+io.seqera.wave.plugin.WavePlugin
