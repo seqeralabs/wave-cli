@@ -1,7 +1,8 @@
 #
-# Nextflow Wave Plugin Extensions Index
+# Nextflow Wave CLI Plugin Extensions Index
 #
-# This file lists all the extension points provided by the Wave plugin
+# This file lists all the extension points provided by the Wave CLI plugin
 #
 
-io.seqera.wave.plugin.WavePlugin
+# Command Extension Points
+io.seqera.wave.plugin.WaveCommandExtensionPoint

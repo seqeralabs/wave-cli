@@ -17,7 +17,7 @@
 
 plugins {
     id 'groovy'
-    id 'io.nextflow.nextflow-plugin' version '0.0.1-alpha6'
+    id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.6'
 }
 
 // read the version from the `VERSION` file
@@ -31,6 +31,7 @@ java {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url = "https://s3-eu-west-1.amazonaws.com/maven.seqera.io/releases" }
     maven { url = "https://s3-eu-west-1.amazonaws.com/maven.seqera.io/snapshots" }
@@ -38,6 +39,10 @@ repositories {
 
 dependencies {
     // Nextflow plugin dependencies are automatically handled by the nextflow-plugin gradle plugin
+    compileOnly 'io.nextflow:nextflow-plugin-gradle:1.0.0-beta.6'
+    
+    // Add core Nextflow as compile dependency for CommandExtensionPoint  
+    compileOnly files('/Users/edmundmiller/.worktrees/nextflow/cli-extension/modules/nextflow/build/libs/nextflow-25.06.0-edge.jar')
     
     // Keep existing Wave API dependencies
     implementation 'io.seqera:wave-api:0.16.0'
@@ -73,6 +78,6 @@ test {
 nextflowPlugin {
     className = 'io.seqera.wave.plugin.WavePlugin'
     provider = 'Paolo Di Tommaso'
-    description = 'Nextflow plugin providing Wave CLI functionality'
+    description = 'Nextflow plugin providing first-class Wave CLI commands'
     nextflowVersion = '25.04.0'
 }

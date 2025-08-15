@@ -18,19 +18,18 @@
 package io.seqera.wave.plugin
 
 import nextflow.plugin.BasePlugin
-import nextflow.cli.PluginAbstractExec
 import org.pf4j.PluginWrapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
- * Wave plugin for Nextflow
+ * Wave CLI plugin for Nextflow
  *
- * Enables Wave container provisioning directly from Nextflow CLI
+ * Provides first-class Wave CLI commands through CommandExtensionPoint system
  *
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
-class WavePlugin extends BasePlugin implements PluginAbstractExec {
+class WavePlugin extends BasePlugin {
 
     private static final Logger log = LoggerFactory.getLogger(WavePlugin.class)
 
@@ -40,34 +39,11 @@ class WavePlugin extends BasePlugin implements PluginAbstractExec {
 
     @Override
     void start() {
-        log.debug("Wave plugin started")
+        log.debug("Wave CLI plugin started")
     }
 
     @Override
     void stop() {
-        log.debug("Wave plugin stopped")
-    }
-
-    @Override
-    List<String> getCommands() {
-        return ['wave']
-    }
-
-    @Override
-    int exec(String cmd, List<String> args) {
-        if (cmd == 'wave') {
-            log.debug("Executing Wave command with args: ${args}")
-            try {
-                def extension = new WaveCommandExtension()
-                return extension.exec(args as String[])
-            } catch (Exception e) {
-                System.err.println("Wave command failed: ${e.message}")
-                log.error("Wave command execution failed", e)
-                return 1
-            }
-        } else {
-            System.err.println("Invalid command: ${cmd}")
-            return 1
-        }
+        log.debug("Wave CLI plugin stopped")
     }
 }
