@@ -94,7 +94,7 @@ jobs:
           /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./app/build/native/nativeCompile/wave -v
 
       - name: Notarize binary
-        if: ${{ matrix.codesign && contains(github.event.head_commit.message, '[release]') && github.event.ref=='refs/heads/master'}}
+        if: ${{ matrix.codesign }}
         env:
           MACOS_AC_API_CERT: ${{ secrets.MACOS_AC_API_CERT }}
           MACOS_AC_API_ISSUER_ID: ${{ secrets.MACOS_AC_API_ISSUER_ID }}
