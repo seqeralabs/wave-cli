@@ -78,7 +78,7 @@ jobs:
         run: ./gradlew app:nativeCompile
 
       - name: Codesign binary
-        if: ${{ matrix.codesign  && contains(github.event.head_commit.message, '[release]') && github.event.ref=='refs/heads/master'}}
+        if: ${{ matrix.codesign }}
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
