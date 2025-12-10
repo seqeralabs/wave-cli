@@ -21,6 +21,7 @@ import java.nio.file.Files
 import java.time.Duration
 import java.time.Instant
 
+import io.seqera.wave.api.BuildCompression
 import io.seqera.wave.api.ContainerStatus
 import io.seqera.wave.api.ContainerStatusResponse
 import io.seqera.wave.api.ImageNameStrategy
@@ -308,6 +309,58 @@ class AppTest extends Specification {
         req.scanLevels == List.of(ScanLevel.LOW, ScanLevel.MEDIUM)
     }
 
+    def 'should set build compression gzip' () {
+        given:
+        def app = new App()
+        String[] args = ["--build-compression", 'gzip']
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        def req = app.createRequest()
+        then:
+        req.buildCompression == new BuildCompression().withMode(BuildCompression.Mode.gzip)
+    }
+
+    def 'should set build compression estargz' () {
+        given:
+        def app = new App()
+        String[] args = ["--build-compression", 'estargz']
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        def req = app.createRequest()
+        then:
+        req.buildCompression == new BuildCompression().withMode(BuildCompression.Mode.estargz)
+    }
+
+    def 'should set build template' () {
+        given:
+        def app = new App()
+        String[] args = ["--build-template", 'conda/pixi:v1']
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        def req = app.createRequest()
+        then:
+        req.buildTemplate == 'conda/pixi:v1'
+    }
+
+    def 'should set build template micromamba' () {
+        given:
+        def app = new App()
+        String[] args = ["--build-template", 'conda/micromamba:v2']
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        def req = app.createRequest()
+        then:
+        req.buildTemplate == 'conda/micromamba:v2'
+    }
+
     def 'should not allow dry-run and await' () {
         given:
         def app = new App()
@@ -448,17 +501,6 @@ class AppTest extends Specification {
         app.@await == Duration.ofMinutes(15)
     }
     
-    def 'should generate a container' () {
-        given:
-        def app = new App()
-        String[] args = [ 'Get a docker container']
-
-        when:
-        new CommandLine(app).parseArgs(args)
-        then:
-        app.prompt == ['Get a docker container']
-    }
-
     def 'should get the correct name strategy'(){
         given:
         def app = new App()
@@ -510,7 +552,7 @@ class AppTest extends Specification {
     def 'should fail when specifying mirror registry and container file' () {
         given:
         def app = new App()
-        String[] args = ["--mirror", "true", "-f", "foo"]
+        String[] args = ["--mirror", "-f", "foo"]
 
         when:
         def cli = new CommandLine(app)
@@ -526,7 +568,7 @@ class AppTest extends Specification {
     def 'should fail when specifying mirror registry and conda package' () {
         given:
         def app = new App()
-        String[] args = ["--mirror", "true", "--conda-package", "foo"]
+        String[] args = ["--mirror", "--conda-package", "foo"]
 
         when:
         def cli = new CommandLine(app)
@@ -542,7 +584,7 @@ class AppTest extends Specification {
     def 'should fail when specifying mirror registry and freeze' () {
         given:
         def app = new App()
-        String[] args = ["--mirror", "true", "--image", "foo", "--freeze"]
+        String[] args = ["--mirror", "--image", "foo", "--freeze"]
 
         when:
         def cli = new CommandLine(app)
@@ -558,7 +600,7 @@ class AppTest extends Specification {
     def 'should fail when specifying mirror and missing build repo' () {
         given:
         def app = new App()
-        String[] args = ["--mirror", "true"]
+        String[] args = ["--mirror", "--image", "foo"]
 
         when:
         def cli = new CommandLine(app)

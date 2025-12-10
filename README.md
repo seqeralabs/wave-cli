@@ -11,6 +11,7 @@ that it can be used in your Docker (replace-with-your-own-fav-container-engine) 
 
 * Build container images on-demand for a given container file (aka Dockerfile);
 * Build container images on-demand based on one or more [Conda](https://conda.io/) packages;
+* Build container images on-demand based on one or more R/[CRAN](https://cran.r-project.org/) packages;
 * Build container images for a specified target platform (currently linux/amd64 and linux/arm64);
 * Push and cache built containers to a user-provided container repository;
 * Push Singularity native container images to OCI-compliant registries;
@@ -32,6 +33,9 @@ If you use [Homebrew](https://brew.sh/), you can install like this:
 ```bash
  brew install seqeralabs/tap/wave-cli
 ```
+
+> [!TIP]
+> If you cannot find the latest version, run `brew update` to refresh your local Homebrew database.
 
 ### Get started
 
@@ -102,12 +106,28 @@ If you use [Homebrew](https://brew.sh/), you can install like this:
     docker run $container sh -c hello.sh
     ```
 
-#### Build a Conda multi-packages container 
+#### Build a Conda multi-packages container
 
 ```bash
 container=$(wave --conda-package bamtools=2.5.2 --conda-package samtools=1.17)
 docker run $container sh -c 'bamtools --version && samtools --version'
 ```
+
+#### Build a Conda container using Pixi (multi-stage build)
+
+Use the `--build-template` option to select an optimized build template. The `conda/pixi:v1` template
+uses the [Pixi](https://pixi.sh/) package manager with multi-stage builds for smaller, more secure images:
+
+```bash
+container=$(wave --conda-package bamtools=2.5.2 --build-template conda/pixi:v1)
+docker run $container bamtools --version
+```
+
+Available build templates:
+- `conda/micromamba:v1` - Default Conda build using Micromamba 1.x
+- `conda/micromamba:v2` - Multi-stage build using Micromamba 2.x
+- `conda/pixi:v1` - Multi-stage build using Pixi package manager
+- `cran/installr:v1` - Build template for CRAN/R packages
 
 #### Build a container by using a Conda environment file
 

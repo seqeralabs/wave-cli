@@ -32,7 +32,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -40,21 +39,33 @@ import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import io.seqera.wave.api.*;
+import io.seqera.wave.api.BuildCompression;
+import io.seqera.wave.api.BuildContext;
+import io.seqera.wave.api.ContainerConfig;
+import io.seqera.wave.api.ContainerInspectRequest;
+import io.seqera.wave.api.ContainerInspectResponse;
+import io.seqera.wave.api.ContainerLayer;
+import io.seqera.wave.api.ContainerStatusResponse;
+import io.seqera.wave.api.ImageNameStrategy;
+import io.seqera.wave.api.PackagesSpec;
+import io.seqera.wave.api.ScanLevel;
+import io.seqera.wave.api.ScanMode;
+import io.seqera.wave.api.ServiceInfo;
+import io.seqera.wave.api.SubmitContainerTokenRequest;
+import io.seqera.wave.api.SubmitContainerTokenResponse;
 import io.seqera.wave.cli.exception.BadClientResponseException;
 import io.seqera.wave.cli.exception.ClientConnectionException;
 import io.seqera.wave.cli.exception.IllegalCliArgumentException;
 import io.seqera.wave.cli.exception.ReadyTimeoutException;
 import io.seqera.wave.cli.json.JsonHelper;
 import io.seqera.wave.cli.model.ContainerInspectResponseEx;
-import io.seqera.wave.cli.model.ContainerSpecEx;
 import io.seqera.wave.cli.model.SubmitContainerTokenResponseEx;
 import io.seqera.wave.cli.util.BuildInfo;
 import io.seqera.wave.cli.util.CliVersionProvider;
 import io.seqera.wave.cli.util.DurationConverter;
-import io.seqera.wave.cli.util.GptHelper;
 import io.seqera.wave.cli.util.YamlHelper;
 import io.seqera.wave.config.CondaOpts;
+import io.seqera.wave.config.CranOpts;
 import io.seqera.wave.util.DockerIgnoreFilter;
 import io.seqera.wave.util.Packer;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +74,6 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import static io.seqera.wave.cli.util.Checkers.isEmpty;
 import static io.seqera.wave.cli.util.Checkers.isEnvVar;
-import static io.seqera.wave.cli.util.StreamHelper.tryReadStdin;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Option;
 
@@ -157,6 +167,15 @@ public class App implements Runnable {
     @Option(names = {"--conda-channels"}, paramLabel = "''", description = "Conda channels used to build the container (default: ${DEFAULT-VALUE}).")
     private String condaChannels = DEFAULT_CONDA_CHANNELS;
 
+    @Option(names = {"--cran-package", "--cran"}, paramLabel = "''", description = "One or more CRAN packages used to build the container e.g. dplyr=1.1.0.")
+    private List<String> cranPackages;
+
+    @Option(names = {"--cran-base-image"}, paramLabel = "''", description = "R base image used to build the container (default: ${DEFAULT-VALUE}).")
+    private String cranBaseImage = CranOpts.DEFAULT_R_IMAGE;
+
+    @Option(names = {"--cran-run-command"}, paramLabel = "''", description = "Dockerfile RUN commands used to build the container.")
+    private List<String> cranRunCommands;
+
     @Option(names = {"--log-level"}, paramLabel = "''", description = "Set the application log level. One of: OFF, ERROR, WARN, INFO, DEBUG, TRACE and ALL")
     private String logLevel;
 
@@ -185,16 +204,16 @@ public class App implements Runnable {
     @Option(names = {"--include"}, paramLabel = "''", description = "Include one or more containers in the specified base image")
     private List<String> includes;
 
-    @Option(names = {"--name-strategy"}, paramLabel = "false", description = "Specify the name strategy for the container name, it can be 'none' or 'tagPrefix' or 'imageSuffix'")
+    @Option(names = {"--name-strategy"}, paramLabel = "<value>", description = "Specify the name strategy for the container name, it can be 'none' or 'tagPrefix' or 'imageSuffix'")
     private ImageNameStrategy nameStrategy;
 
-    @Option(names = {"-m","--mirror"}, paramLabel = "false", description = "Enable container mirror mode'")
+    @Option(names = {"-m","--mirror"}, paramLabel = "false", description = "Enable container mirror mode")
     private boolean mirror;
 
-    @Option(names = {"--scan-mode"}, paramLabel = "false", description = "Specify container security scan mode, it can be 'none', 'async' or 'required'")
+    @Option(names = {"--scan-mode"}, paramLabel = "<value>", description = "Specify container security scan mode, it can be 'none', 'async' or 'required'")
     private ScanMode scanMode;
 
-    @Option(names = {"--scan-level"}, paramLabel = "false", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
+    @Option(names = {"--scan-level"}, paramLabel = "<value>", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
     private List<ScanLevel> scanLevels;
 
     @Option(names = {"--build-template"}, paramLabel = "false", description = "Specify one or more security scan vulnerabilities level allowed in the container e.g. low,medium,high,critical")
@@ -203,16 +222,11 @@ public class App implements Runnable {
     @CommandLine.Parameters
     List<String> prompt;
 
-    static private String[] makeArgs(String[] args) {
-        String stdin = tryReadStdin();
-        if( stdin==null )
-            return args;
+    @Option(names = {"--build-compression"}, paramLabel = "<value>", description = "Specify the compression algorithm to be used for the build context, it can be 'gzip', 'zstd' or 'estargz'")
+    private BuildCompression.Mode buildCompression;
 
-        List<String> result = new ArrayList<>(Arrays.asList(args));
-        result.add("--");
-        result.add(stdin);
-        return result.toArray(new String[args.length+2]);
-    }
+    @Option(names = {"--build-template"}, paramLabel = "<value>", description = "Specify the build template to be used for building the container, e.g. 'conda/pixi:v1', 'conda/micromamba:v1', 'conda/micromamba:v2', 'cran/installr:v1'")
+    private String buildTemplate;
 
     public static void main(String[] args) {
         try {
@@ -228,11 +242,7 @@ public class App implements Runnable {
                 .usageMessage()
                 .footer(readExamples("usage-examples.txt"));
 
-            final CommandLine.ParseResult result = cli.parseArgs(makeArgs(args));
-            if( !result.originalArgs().contains("--") ) {
-                // reset prompt if `-- was not entered
-                app.prompt=null;
-            }
+            final CommandLine.ParseResult result = cli.parseArgs(args);
 
             if( result.matchedArgs().size()==0 || result.isUsageHelpRequested() ) {
                 cli.usage(System.out);
@@ -315,7 +325,7 @@ public class App implements Runnable {
         if( !isEmpty(image) && !isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Argument --image and --containerfile conflict each other - Specify an image name or a container file for the container to be provisioned");
 
-        if( isEmpty(image) && isEmpty(containerFile) && isEmpty(condaFile) && condaPackages==null && isEmpty(prompt) )
+        if( isEmpty(image) && isEmpty(containerFile) && isEmpty(condaFile) && condaPackages==null && cranPackages==null )
             throw new IllegalCliArgumentException("Provide either a image name or a container file for the Wave container to be provisioned");
 
         if( isEmpty(towerToken) && !isEmpty(buildRepository) )
@@ -336,6 +346,20 @@ public class App implements Runnable {
 
         if( condaPackages!=null && !isEmpty(containerFile) )
             throw new IllegalCliArgumentException("Option --conda-package and --containerfile conflict each other");
+
+        // -- check CRAN options
+        if( cranPackages!=null && !isEmpty(image) )
+            throw new IllegalCliArgumentException("Option --cran-package and --image conflict each other");
+
+        if( cranPackages!=null && !isEmpty(containerFile) )
+            throw new IllegalCliArgumentException("Option --cran-package and --containerfile conflict each other");
+
+        // -- mutual exclusivity between conda and CRAN
+        if( !isEmpty(condaFile) && cranPackages!=null )
+            throw new IllegalCliArgumentException("Option --conda-file and --cran-package conflict each other - conda packages and CRAN packages cannot be specified in the same command");
+
+        if( condaPackages!=null && cranPackages!=null )
+            throw new IllegalCliArgumentException("Option --conda-package and --cran-package conflict each other - conda packages and CRAN packages cannot be specified in the same command");
 
         if( !isEmpty(outputFormat) && !List.of("json","yaml").contains(outputFormat) ) {
             final String msg = String.format("Invalid output format: '%s' - expected value: json, yaml", outputFormat);
@@ -416,8 +440,15 @@ public class App implements Runnable {
                 .withMirror(mirror)
                 .withScanMode(scanMode)
                 .withScanLevels(scanLevels)
+                .withBuildCompression(compression(buildCompression))
                 .withBuildTemplate(buildTemplate)
                 ;
+    }
+
+    BuildCompression compression(BuildCompression.Mode mode) {
+        if( mode==null )
+            return null;
+        return new BuildCompression().withMode(mode);
     }
 
     public void inspect() {
@@ -430,8 +461,7 @@ public class App implements Runnable {
                 ;
 
         final ContainerInspectResponse resp = client.inspect(req);
-        final ContainerSpecEx spec = new ContainerSpecEx(resp.getContainer());
-        System.out.println(dumpOutput(new ContainerInspectResponseEx(spec)));
+        System.out.println(dumpOutput(new ContainerInspectResponseEx(resp)));
     }
 
     @Override
@@ -596,6 +626,13 @@ public class App implements Runnable {
                 ;
     }
 
+    private CranOpts cranOpts() {
+        return new CranOpts()
+                .withRImage(cranBaseImage)
+                .withCommands(cranRunCommands)
+                ;
+    }
+
     protected String containerFileBase64() {
         return !isEmpty(containerFile)
                 ? encodePathBase64(containerFile)
@@ -621,8 +658,12 @@ public class App implements Runnable {
                     ;
         }
 
-        if( !isEmpty(prompt) ) {
-            return GptHelper.grabPackages(prompt.stream().collect(Collectors.joining(" ")));
+        if( !isEmpty(cranPackages) ) {
+            return new PackagesSpec()
+                    .withType(PackagesSpec.Type.CRAN)
+                    .withCranOpts(cranOpts())
+                    .withEntries(cranPackages)
+                    ;
         }
 
         return null;
@@ -704,7 +745,7 @@ public class App implements Runnable {
     }
 
     protected String serviceVersion() {
-        return serviceVersion0(getServiceVersion(), "1.13.0");
+        return serviceVersion0(getServiceVersion(), "1.31.0");
     }
 
     protected String serviceVersion0(String current, String required) {

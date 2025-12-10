@@ -1,7 +1,7 @@
 plugins {
     id 'groovy'
     id 'io.seqera.wave.cli.java-application-conventions'
-    id 'org.graalvm.buildtools.native' version '0.10.2'
+    id 'org.graalvm.buildtools.native' version '0.10.6'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
@@ -19,15 +19,14 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.seqera:wave-api:0.14.0'
-    implementation 'io.seqera:wave-utils:0.15.0'
+    implementation 'io.seqera:wave-api:1.31.0'
+    implementation 'io.seqera:wave-utils:1.31.0'
     implementation 'info.picocli:picocli:4.6.1'
     implementation 'com.squareup.moshi:moshi:1.15.2'
     implementation 'com.squareup.moshi:moshi-adapters:1.15.2'
     implementation 'dev.failsafe:failsafe:3.1.0'
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.commons:commons-lang3:3.19.0'
     implementation 'org.yaml:snakeyaml:2.1'
-    implementation 'dev.langchain4j:langchain4j-open-ai:0.29.0'
     implementation 'org.semver4j:semver4j:5.4.0'
     annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
     // bump commons-io version to address security vulnerabilities
@@ -106,6 +105,8 @@ graalvmNative {
             buildArgs.add('-R:MaxHeapSize=100M')
             buildArgs.add('-R:MinHeapSize=10M')
             buildArgs.add('-R:MaxNewSize=25M')
+            // Initialize logback classes at build time since they're used by static logger fields
+            buildArgs.add('--initialize-at-build-time=ch.qos.logback,org.slf4j')
         }
     }
     toolchainDetection = true

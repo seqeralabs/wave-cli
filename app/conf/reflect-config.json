@@ -127,72 +127,16 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"dev.ai4j.openai4j.chat.AssistantMessage",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.ChatCompletionChoice",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.ChatCompletionRequest",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.ChatCompletionResponse",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.Delta",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.Function",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.FunctionCall",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.Parameters",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.ResponseFormat",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.Tool",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.ToolCall",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.chat.ToolChoice",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"dev.ai4j.openai4j.shared.Usage",
-  "allDeclaredFields":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
   "name":"groovy.lang.Closure"
+},
+{
+  "name":"io.seqera.wave.api.BuildCompression",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.api.BuildCompression$Mode",
+  "fields":[{"name":"estargz"}, {"name":"gzip"}, {"name":"zstd"}]
 },
 {
   "name":"io.seqera.wave.api.BuildContext",
@@ -235,7 +179,7 @@
 },
 {
   "name":"io.seqera.wave.api.PackagesSpec$Type",
-  "fields":[{"name":"CONDA"}, {"name":"SPACK"}]
+  "fields":[{"name":"CONDA"}, {"name":"CRAN"}]
 },
 {
   "name":"io.seqera.wave.api.ScanLevel",
@@ -337,6 +281,16 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"io.seqera.wave.config.CranOpts",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.config.PixiOpts",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"io.seqera.wave.config.SpackOpts",
   "allDeclaredFields":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
@@ -358,6 +312,21 @@
 },
 {
   "name":"io.seqera.wave.core.spec.ContainerSpec",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.core.spec.IndexSpec",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.core.spec.IndexSpec$ManifestSpec",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.seqera.wave.core.spec.IndexSpec$PlatformSpec",
   "allDeclaredFields":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
