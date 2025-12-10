@@ -8,6 +8,7 @@
  */
 pluginManagement {
     repositories {
+        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -20,8 +21,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-rootProject.name = 'wave-cli'
-include('app')
+rootProject.name = 'nf-wave-cli'
 
 // enable for local development
 // includeBuild("../libseqera")

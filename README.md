@@ -1,6 +1,8 @@
-# Wave CLI
+# wave-cli
 
-Command line tool for [Wave containers provisioning service](https://github.com/seqeralabs/wave).
+Nextflow plugin providing [Wave CLI](https://github.com/seqeralabs/wave-cli) functionality.
+
+This plugin enables Wave container provisioning via the `nextflow plugin wave` command, providing all the CLI features of the standalone Wave CLI tool directly within Nextflow.
 
 ### Summary 
 
@@ -20,18 +22,18 @@ that it can be used in your Docker (replace-with-your-own-fav-container-engine) 
   
 ### Installation 
 
-
-#### Binary download 
-
-Download the Wave pre-compiled binary for your operating system from the 
-[GitHub releases page](https://github.com/seqeralabs/wave-cli/releases/latest) and give execute permission to it.
-
-#### Homebrew (Linux and macOS)
-
-If you use [Homebrew](https://brew.sh/), you can install like this:
+Install the wave-cli plugin in your Nextflow environment:
 
 ```bash
- brew install seqeralabs/tap/wave-cli
+nextflow plugin install wave-cli
+```
+
+Alternatively, add the plugin to your `nextflow.config`:
+
+```groovy
+plugins {
+    id 'wave-cli'
+}
 ```
 
 > [!TIP]
@@ -57,7 +59,7 @@ If you use [Homebrew](https://brew.sh/), you can install like this:
 
 
     ```bash
-    docker run --rm $(wave -f ./Dockerfile) cowsay "Hello world"
+    docker run --rm $(nextflow plugin wave -f ./Dockerfile) cowsay "Hello world"
     ```
 
 
@@ -76,7 +78,7 @@ If you use [Homebrew](https://brew.sh/), you can install like this:
 2. Augment the container with the local layer and run with Docker:
 
     ```bash
-    container=$(wave -i alpine --layer new-layer)
+    container=$(nextflow plugin wave -i alpine --layer new-layer)
     docker run $container sh -c hello.sh
     ```
 
@@ -102,14 +104,14 @@ If you use [Homebrew](https://brew.sh/), you can install like this:
 3. Build and run the container on the fly:
 
     ```bash
-    container=$(wave -f Dockerfile --context build-context)
+    container=$(nextflow plugin wave -f Dockerfile --context build-context)
     docker run $container sh -c hello.sh
     ```
 
 #### Build a Conda multi-packages container
 
 ```bash
-container=$(wave --conda-package bamtools=2.5.2 --conda-package samtools=1.17)
+container=$(nextflow plugin nextflow plugin wave --conda-package bamtools=2.5.2 --conda-package samtools=1.17)
 docker run $container sh -c 'bamtools --version && samtools --version'
 ```
 
@@ -148,7 +150,7 @@ Available build templates:
 2. Build and run the container using the Conda environment:
 
     ```bash
-    container=$(wave --conda-file ./conda.yaml)
+    container=$(nextflow plugin wave --conda-file ./conda.yaml)
     docker run $container sh -c 'bamtools --version'
     ```
 
@@ -156,7 +158,7 @@ Available build templates:
 #### Build a container by using a Conda lock file
 
 ```bash
-container=$(wave --conda-package https://prefix.dev/envs/pditommaso/wave/6x60arx3od13/conda-lock.yml)
+container=$(nextflow plugin nextflow plugin wave --conda-package https://prefix.dev/envs/pditommaso/wave/6x60arx3od13/conda-lock.yml)
 docker run $container cowpy 'Hello, world!'
 ```
 
@@ -164,33 +166,33 @@ docker run $container cowpy 'Hello, world!'
 #### Build a Conda package container arm64 architecture
 
 ```bash
-container=$(wave --conda-package fastp --platform linux/arm64)
+container=$(nextflow plugin nextflow plugin wave --conda-package fastp --platform linux/arm64)
 docker run --platform linux/arm64 $container sh -c 'fastp --version'
 ```
 
 #### Build a Singularity container using a Conda package and pushing to a OCI registry
 
 ```bash
-container=$(wave --singularity --conda-package bamtools=2.5.2 --build-repo docker.io/user/repo --freeze --await)
+container=$(nextflow plugin wave --singularity --conda-package bamtools=2.5.2 --build-repo docker.io/user/repo --freeze --await)
 singularity exec $container bamtools --version
 ```
 
 #### Mirror (aka copy) a container to another registry
 
 ```bash
-container=$(wave -i ubuntu:latest --mirror --build-repo <YOUR REGISTRY> --tower-token <YOUR ACCESS TOKEN> --await)
+container=$(nextflow plugin wave -i ubuntu:latest --mirror --build-repo <YOUR REGISTRY> --tower-token <YOUR ACCESS TOKEN> --await)
 docker pull $container
 ```
 
 #### Build a container and scan it for vulnerabilities
 
 ```bash
-wave --conda-package bamtools=2.5.2 --scan-mode required --await -o yaml
+nextflow plugin wave --conda-package bamtools=2.5.2 --scan-mode required --await -o yaml
 ```
 
 ### Development
 
-1. Install GraalVM-Java 21.0.1
+1. Install Java 21 
 
     ```bash
     sdk install java 21.0.1-graal
@@ -208,14 +210,26 @@ wave --conda-package bamtools=2.5.2 --scan-mode required --await -o yaml
     ./gradlew check
     ```
 
-3. Native compile
+3. Build and install plugin locally for development
 
     ```bash
-    ./gradlew app:nativeCompile
+    ./gradlew installPlugin
     ```
 
-4. Run the native binary 
+4. Test the plugin with Nextflow
 
     ```bash
-    ./app/build/native/nativeCompile/wave --version
+    nextflow plugin wave --version
     ```
+
+### Usage in Workflows
+
+You can use Wave directly in your Nextflow workflows by installing the plugin and enabling Wave container provisioning in your `nextflow.config`:
+
+```groovy
+plugins {
+    id 'wave-cli'
+}
+```
+
+Note: This plugin provides CLI functionality via `nextflow plugin wave`. For workflow-level Wave integration, use the official `nf-wave` plugin instead.
