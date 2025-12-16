@@ -313,6 +313,11 @@ public class App implements Runnable {
             waveEndpoint = Client.DEFAULT_ENDPOINT;
         }
 
+        if (await != null && await.toMillis() == Duration.ofMinutes(15).toMillis()
+                && towerToken != null && !towerToken.isEmpty()) {
+            await = Duration.ofMinutes(25);
+        }
+
     }
 
     protected void validateArgs() {
