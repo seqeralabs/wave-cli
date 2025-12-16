@@ -313,8 +313,7 @@ public class App implements Runnable {
             waveEndpoint = Client.DEFAULT_ENDPOINT;
         }
 
-        if ( await != null && await.toMinutes() == Duration.ofMinutes(15).toMinutes()
-                && !isEmpty(towerToken) ) {
+        if ( Duration.ofMinutes(15).equals(await) && !isEmpty(towerToken) ) {
             await = Duration.ofMinutes(25);
         }
 
