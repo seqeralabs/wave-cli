@@ -177,8 +177,8 @@ public class App implements Runnable {
     @Option(names = {"--cran-run-command"}, paramLabel = "''", description = "Dockerfile RUN commands used to build the container.")
     private List<String> cranRunCommands;
 
-    @Option(names = {"--pixi-build-image"}, paramLabel = "''", description = "Pixi builder image used to build the container (default: ${DEFAULT-VALUE}).")
-    private String pixiBuildImage = PixiOpts.DEFAULT_PIXI_IMAGE;
+    @Option(names = {"--pixi-image"}, paramLabel = "''", description = "Pixi builder image used to build the container (default: ${DEFAULT-VALUE}).")
+    private String pixiImage = PixiOpts.DEFAULT_PIXI_IMAGE;
 
     @Option(names = {"--pixi-base-image"}, paramLabel = "''", description = "Base image for the final Pixi container (default: ${DEFAULT-VALUE}).")
     private String pixiBaseImage = PixiOpts.DEFAULT_BASE_IMAGE;
@@ -646,7 +646,7 @@ public class App implements Runnable {
 
     private PixiOpts pixiOpts() {
         return new PixiOpts()
-                .withPixiImage(pixiBuildImage)
+                .withPixiImage(pixiImage)
                 .withBaseImage(pixiBaseImage)
                 .withBasePackages(pixiBasePackages)
                 .withCommands(pixiRunCommands)

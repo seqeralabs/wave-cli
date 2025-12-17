@@ -88,7 +88,7 @@ class AppPixiOptsTest extends Specification {
         def app = new App()
         String[] args = [
                 "--conda-package", "foo",
-                "--pixi-build-image", "my/pixi:latest"
+                "--pixi-image", "my/pixi:latest"
         ]
 
         when:
@@ -183,7 +183,7 @@ class AppPixiOptsTest extends Specification {
         String[] args = [
                 "--conda-package", "foo",
                 "--conda-package", "bar",
-                "--pixi-build-image", "custom/pixi:v1",
+                "--pixi-image", "custom/pixi:v1",
                 "--pixi-base-image", "debian:12",
                 "--pixi-base-packages", "conda-forge::wget",
                 "--pixi-run-command", "RUN one",
