@@ -645,4 +645,20 @@ class AppTest extends Specification {
         '2.0.0'     | '2.1.0'       | '2.0.0 (required: 2.1.0)'
     }
 
+    def 'should fail when inspecting without container image' () {
+        given:
+        def app = new App()
+        String[] args = ["--conda-package", "bwa", "--freeze", "--singularity", "--inspect"]
+
+        when:
+        def cli = new CommandLine(app)
+        cli.parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        and:
+        e.getMessage() == "Option --inspect requires the use of container image (--image)"
+    }
+
 }

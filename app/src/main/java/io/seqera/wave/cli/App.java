@@ -261,6 +261,8 @@ public class App implements Runnable {
 
             app.setLogLevel();
             app.defaultArgs();
+            // validate the command line args
+            app.validateArgs();
             if( app.info ) {
                 app.printInfo();
             }
@@ -386,6 +388,9 @@ public class App implements Runnable {
         if( singularity && !freeze )
             throw new IllegalCliArgumentException("Singularity build requires enabling freeze mode");
 
+        if( inspect && isEmpty(image) )
+            throw new IllegalCliArgumentException("Option --inspect requires the use of container image (--image)");
+
         if( !isEmpty(contextDir) ) {
             // check that a container file has been provided
             if( isEmpty(containerFile) )
@@ -477,8 +482,6 @@ public class App implements Runnable {
 
     @Override
     public void run() {
-        // validate the command line args
-        validateArgs();
         // prepare the request
         buildContext = prepareContext();
         containerConfig = prepareConfig();
