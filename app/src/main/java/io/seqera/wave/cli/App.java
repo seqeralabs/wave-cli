@@ -95,7 +95,13 @@ public class App implements Runnable {
     private static final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
     private static final String DEFAULT_TOWER_ENDPOINT = "https://api.cloud.seqera.io";
 
-    private static final List<String> VALID_PLATFORMS = List.of("amd64", "x86_64", "linux/amd64", "linux/x86_64", "arm64", "linux/arm64");
+    private static final List<String> AMD64_ALIASES = List.of("amd64", "x86_64", "linux/amd64", "linux/x86_64");
+
+    private static final List<String> ARM64_ALIASES = List.of("arm64", "linux/arm64");
+
+    private static final String MULTI_ARCH_PLATFORM = "linux/amd64,linux/arm64";
+
+    private static final String PLATFORM_ALL = "all";
 
     private static final long _1MB = 1024 * 1024;
 
@@ -126,7 +132,7 @@ public class App implements Runnable {
     @Option(names = {"--freeze", "-F"}, paramLabel = "false",  description = "Request a container freeze.")
     private boolean freeze;
 
-    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64, linux/arm64.")
+    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64, linux/arm64, linux/amd64,linux/arm64 for multi-arch builds, or 'all'.")
     private String platform;
 
     @Option(names = {"--await"}, paramLabel = "false", arity = "0..1", description = "Await the container build to be available. you can provide a timeout like --await 10m or 2s, by default its 15 minutes.")
@@ -420,9 +426,24 @@ public class App implements Runnable {
         if( dryRun && await != null )
             throw new IllegalCliArgumentException("Options --dry-run and --await conflicts each other");
 
-        if( !isEmpty(platform) && !VALID_PLATFORMS.contains(platform) )
-            throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", platform));
+        if( !isEmpty(platform) )
+            validatePlatform(platform);
 
+    }
+
+    protected void validatePlatform(String platform) {
+        // normalizePlatform validates each platform value via canonicalPlatform
+        normalizePlatform(platform);
+        // check multi-arch specific constraints
+        if( PLATFORM_ALL.equals(platform) || platform.contains(",") )
+            validateMultiArch();
+    }
+
+    private void validateMultiArch() {
+        if( isEmpty(containerFile) && isEmpty(condaFile) && condaPackages==null && cranPackages==null )
+            throw new IllegalCliArgumentException("Multi-arch build requires a container file (--containerfile) or package specification");
+        if( singularity )
+            throw new IllegalCliArgumentException("Multi-arch build is not compatible with Singularity format");
     }
 
     protected Client client() {
@@ -434,7 +455,7 @@ public class App implements Runnable {
                 .withContainerImage(image)
                 .withContainerFile(containerFileBase64())
                 .withPackages(packagesSpec())
-                .withContainerPlatform(platform)
+                .withContainerPlatform(normalizePlatform(platform))
                 .withTimestamp(OffsetDateTime.now())
                 .withBuildRepository(buildRepository)
                 .withCacheRepository(cacheRepository)
@@ -454,6 +475,28 @@ public class App implements Runnable {
                 .withBuildCompression(compression(buildCompression))
                 .withBuildTemplate(buildTemplate)
                 ;
+    }
+
+    protected String normalizePlatform(String platform) {
+        if( isEmpty(platform) )
+            return null;
+        if( PLATFORM_ALL.equals(platform) )
+            return MULTI_ARCH_PLATFORM;
+        if( platform.contains(",") ) {
+            return Arrays.stream(platform.split(","))
+                    .map(String::trim)
+                    .map(App::canonicalPlatform)
+                    .collect(Collectors.joining(","));
+        }
+        return canonicalPlatform(platform);
+    }
+
+    private static String canonicalPlatform(String value) {
+        if( AMD64_ALIASES.contains(value) )
+            return "linux/amd64";
+        if( ARM64_ALIASES.contains(value) )
+            return "linux/arm64";
+        throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", value));
     }
 
     BuildCompression compression(BuildCompression.Mode mode) {

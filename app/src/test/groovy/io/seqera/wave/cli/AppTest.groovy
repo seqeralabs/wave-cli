@@ -631,6 +631,182 @@ class AppTest extends Specification {
         e.getMessage() == "Option --mirror and requires the use of a build repository"
     }
 
+    def 'should allow multi-arch platform linux/amd64,linux/arm64 with containerfile' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "linux/amd64,linux/arm64"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+
+        when:
+        def req = app.createRequest()
+        then:
+        req.containerPlatform == 'linux/amd64,linux/arm64'
+
+        cleanup:
+        folder?.deleteDir()
+    }
+
+    def 'should normalize shorthand multi-arch platform to canonical form' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "amd64,arm64"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+
+        when:
+        def req = app.createRequest()
+        then:
+        req.containerPlatform == 'linux/amd64,linux/arm64'
+
+        cleanup:
+        folder?.deleteDir()
+    }
+
+    def 'should normalize single platform to canonical form' () {
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest", "--platform", "x86_64"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+
+        when:
+        def req = app.createRequest()
+        then:
+        req.containerPlatform == 'linux/amd64'
+    }
+
+    def 'should allow platform all and map to multi-arch' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "all"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+
+        when:
+        def req = app.createRequest()
+        then:
+        req.containerPlatform == 'linux/amd64,linux/arm64'
+
+        cleanup:
+        folder?.deleteDir()
+    }
+
+    def 'should fail multi-arch with image only and no containerfile' () {
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest", "--platform", "linux/amd64,linux/arm64"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == 'Multi-arch build requires a container file (--containerfile) or package specification'
+    }
+
+    def 'should fail multi-arch all with image only' () {
+        given:
+        def app = new App()
+        String[] args = ["-i", "ubuntu:latest", "--platform", "all"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == 'Multi-arch build requires a container file (--containerfile) or package specification'
+    }
+
+    def 'should fail multi-arch with singularity' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "linux/amd64,linux/arm64", "--singularity", "--freeze", "--build-repo", "docker.io/foo", "--tower-token", "xyz"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == 'Multi-arch build is not compatible with Singularity format'
+
+        cleanup:
+        folder?.deleteDir()
+    }
+
+    def 'should allow multi-arch with conda packages' () {
+        given:
+        def app = new App()
+        String[] args = ["--conda-package", "samtools=1.17", "--platform", "linux/amd64,linux/arm64"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should fail when comma-separated platform contains invalid value' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "linux/amd64,bogus"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == "Unsupported container platform: 'bogus'"
+
+        cleanup:
+        folder?.deleteDir()
+    }
+
     @Unroll
     def 'should check service version'() {
         given:
