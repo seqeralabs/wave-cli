@@ -132,7 +132,7 @@ public class App implements Runnable {
     @Option(names = {"--freeze", "-F"}, paramLabel = "false",  description = "Request a container freeze.")
     private boolean freeze;
 
-    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64, linux/arm64, linux/amd64,linux/arm64 for multi-arch builds, or 'all'.")
+    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64, linux/arm64. Use 'all' for multi-arch builds.")
     private String platform;
 
     @Option(names = {"--await"}, paramLabel = "false", arity = "0..1", description = "Await the container build to be available. you can provide a timeout like --await 10m or 2s, by default its 15 minutes.")
@@ -426,17 +426,12 @@ public class App implements Runnable {
         if( dryRun && await != null )
             throw new IllegalCliArgumentException("Options --dry-run and --await conflicts each other");
 
-        if( !isEmpty(platform) )
-            validatePlatform(platform);
+        if( !isEmpty(platform) ) {
+            platform = normalizePlatform(platform);
+            if( platform.contains(",") )
+                validateMultiArch();
+        }
 
-    }
-
-    protected void validatePlatform(String platform) {
-        // normalizePlatform validates each platform value via canonicalPlatform
-        normalizePlatform(platform);
-        // check multi-arch specific constraints
-        if( PLATFORM_ALL.equals(platform) || platform.contains(",") )
-            validateMultiArch();
     }
 
     private void validateMultiArch() {
@@ -455,7 +450,7 @@ public class App implements Runnable {
                 .withContainerImage(image)
                 .withContainerFile(containerFileBase64())
                 .withPackages(packagesSpec())
-                .withContainerPlatform(normalizePlatform(platform))
+                .withContainerPlatform(platform)
                 .withTimestamp(OffsetDateTime.now())
                 .withBuildRepository(buildRepository)
                 .withCacheRepository(cacheRepository)
@@ -484,19 +479,20 @@ public class App implements Runnable {
             return MULTI_ARCH_PLATFORM;
         if( platform.contains(",") ) {
             return Arrays.stream(platform.split(","))
-                    .map(String::trim)
                     .map(App::canonicalPlatform)
+                    .distinct()
                     .collect(Collectors.joining(","));
         }
         return canonicalPlatform(platform);
     }
 
     private static String canonicalPlatform(String value) {
-        if( AMD64_ALIASES.contains(value) )
+        final String v = value.trim();
+        if( AMD64_ALIASES.contains(v) )
             return "linux/amd64";
-        if( ARM64_ALIASES.contains(value) )
+        if( ARM64_ALIASES.contains(v) )
             return "linux/arm64";
-        throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", value));
+        throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", v));
     }
 
     BuildCompression compression(BuildCompression.Mode mode) {

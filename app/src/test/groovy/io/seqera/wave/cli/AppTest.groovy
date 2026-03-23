@@ -388,16 +388,16 @@ class AppTest extends Specification {
         and:
         app.validateArgs()
         then:
-        app.@platform == PLATFORM
+        app.@platform == EXPECTED
 
         where:
-        PLATFORM        || _
-        'amd64'         || _
-        'x86_64'        || _
-        'arm64'         || _
-        'linux/amd64'   || _
-        'linux/x86_64'  || _
-        'linux/arm64'   || _
+        PLATFORM        || EXPECTED
+        'amd64'         || 'linux/amd64'
+        'x86_64'        || 'linux/amd64'
+        'arm64'         || 'linux/arm64'
+        'linux/amd64'   || 'linux/amd64'
+        'linux/x86_64'  || 'linux/amd64'
+        'linux/arm64'   || 'linux/arm64'
     }
 
     @Unroll
@@ -784,6 +784,77 @@ class AppTest extends Specification {
         app.validateArgs()
         then:
         noExceptionThrown()
+    }
+
+    def 'should normalize platform with whitespace in comma-separated values' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "linux/amd64, linux/arm64"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+
+        when:
+        def req = app.createRequest()
+        then:
+        req.containerPlatform == 'linux/amd64,linux/arm64'
+
+        cleanup:
+        folder?.deleteDir()
+    }
+
+    def 'should fail platform all with singularity' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "all", "--singularity", "--freeze", "--build-repo", "docker.io/foo", "--tower-token", "xyz"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        def e = thrown(IllegalCliArgumentException)
+        e.message == 'Multi-arch build is not compatible with Singularity format'
+
+        cleanup:
+        folder?.deleteDir()
+    }
+
+    def 'should deduplicate repeated platforms' () {
+        given:
+        def folder = Files.createTempDirectory('test')
+        def containerFile = folder.resolve('Dockerfile')
+        containerFile.text = 'FROM ubuntu:latest'
+        and:
+        def app = new App()
+        String[] args = ["-f", containerFile.toString(), "--platform", "amd64,amd64"]
+
+        when:
+        new CommandLine(app).parseArgs(args)
+        and:
+        app.validateArgs()
+        then:
+        noExceptionThrown()
+
+        when:
+        def req = app.createRequest()
+        then:
+        req.containerPlatform == 'linux/amd64'
+
+        cleanup:
+        folder?.deleteDir()
     }
 
     def 'should fail when comma-separated platform contains invalid value' () {
