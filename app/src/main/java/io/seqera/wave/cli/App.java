@@ -95,11 +95,17 @@ public class App implements Runnable {
     private static final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
     private static final String DEFAULT_TOWER_ENDPOINT = "https://api.cloud.seqera.io";
 
+    private static final List<String> VALID_PLATFORMS = List.of("amd64", "x86_64", "linux/amd64", "linux/x86_64", "arm64", "linux/arm64");
+
+    private static final String CANONICAL_AMD64 = "linux/amd64";
+
+    private static final String CANONICAL_ARM64 = "linux/arm64";
+
     private static final List<String> AMD64_ALIASES = List.of("amd64", "x86_64", "linux/amd64", "linux/x86_64");
 
     private static final List<String> ARM64_ALIASES = List.of("arm64", "linux/arm64");
 
-    private static final String MULTI_ARCH_PLATFORM = "linux/amd64,linux/arm64";
+    private static final String MULTI_ARCH_PLATFORM = CANONICAL_AMD64 + "," + CANONICAL_ARM64;
 
     private static final String PLATFORM_ALL = "all";
 
@@ -489,9 +495,9 @@ public class App implements Runnable {
     private static String canonicalPlatform(String value) {
         final String v = value.trim();
         if( AMD64_ALIASES.contains(v) )
-            return "linux/amd64";
+            return CANONICAL_AMD64;
         if( ARM64_ALIASES.contains(v) )
-            return "linux/arm64";
+            return CANONICAL_ARM64;
         throw new IllegalCliArgumentException(String.format("Unsupported container platform: '%s'", v));
     }
 
