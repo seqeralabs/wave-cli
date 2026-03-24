@@ -126,7 +126,7 @@ public class App implements Runnable {
     @Option(names = {"--freeze", "-F"}, paramLabel = "false",  description = "Request a container freeze.")
     private boolean freeze;
 
-    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build. One of: linux/amd64, linux/arm64, linux/amd64,linux/arm64.")
+    @Option(names = {"--platform"}, paramLabel = "''", description = "Platform to be used for the container build: linux/amd64, linux/arm64, or both separated by comma for multi-platform builds.")
     private String platform;
 
     @Option(names = {"--await"}, paramLabel = "false", arity = "0..1", description = "Await the container build to be available. you can provide a timeout like --await 10m or 2s, by default its 15 minutes.")
