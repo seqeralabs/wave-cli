@@ -10,13 +10,13 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: graalvm/setup-graalvm@v1
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+    - uses: graalvm/setup-graalvm@60c26726de13f8b90771df4bc1641a52a3159994 # v1
       with:
         java-version: 21
 
     - name: Generate and submit dependency graph for wave-cli
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
       with:
         dependency-resolution-task: ":app:dependencies"
         additional-arguments: "--configuration runtimeClasspath"
