@@ -37,7 +37,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: graalvm/setup-graalvm@v1
+      - uses: graalvm/setup-graalvm@f744c72a42b1995d7b0cbc314bde4bace7ac1fe1 # v1.5.0
         if: ${{ matrix.musl }}
         with:
           java-version: '21'
@@ -45,7 +45,7 @@ jobs:
           native-image-job-reports: 'true'
           native-image-musl: 'true'
 
-      - uses: graalvm/setup-graalvm@v1
+      - uses: graalvm/setup-graalvm@f744c72a42b1995d7b0cbc314bde4bace7ac1fe1 # v1.5.0
         if: ${{ !matrix.musl }}
         with:
           java-version: '21'
