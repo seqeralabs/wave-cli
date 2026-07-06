@@ -7,7 +7,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
     sourceCompatibility = 17
     targetCompatibility = 17
@@ -32,10 +32,10 @@ dependencies {
     // bump commons-io version to address security vulnerabilities
     runtimeOnly 'commons-io:commons-io:2.18.0'
 
-    testImplementation "org.apache.groovy:groovy:4.0.24"
-    testImplementation "org.apache.groovy:groovy-nio:4.0.24"
-    testImplementation "org.apache.groovy:groovy-test:4.0.24"
-    testImplementation "org.apache.groovy:groovy-json:4.0.24"
+    testImplementation "org.apache.groovy:groovy:4.0.32"
+    testImplementation "org.apache.groovy:groovy-nio:4.0.32"
+    testImplementation "org.apache.groovy:groovy-test:4.0.32"
+    testImplementation "org.apache.groovy:groovy-json:4.0.32"
     testImplementation "net.bytebuddy:byte-buddy:1.14.11"
     testImplementation ("org.spockframework:spock-core:2.4-groovy-4.0") { exclude group: 'org.apache.groovy' }
 }
@@ -96,7 +96,7 @@ graalvmNative {
             }
 
             javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(21)
+                languageVersion = JavaLanguageVersion.of(25)
                 vendor = JvmVendorSpec.matching("Oracle Corporation")
             }
             buildArgs.add('--enable-url-protocols=https')

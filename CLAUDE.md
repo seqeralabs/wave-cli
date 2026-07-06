@@ -12,7 +12,7 @@ Wave CLI is a command-line tool for the Wave container provisioning service. It 
 - Mirror containers between registries
 - Scan containers for security vulnerabilities
 
-The CLI is built using Java 17 (with Java 21 toolchain) and compiles to a native binary using GraalVM.
+The CLI is built using Java 17 (with Java 25 toolchain) and compiles to a native binary using GraalVM.
 
 ## Architecture
 
@@ -81,7 +81,7 @@ The project compiles to a native binary with specific configuration:
 
 ### Native Compilation
 ```bash
-# Build native binary (requires GraalVM Java 21)
+# Build native binary (requires GraalVM Java 25)
 ./gradlew app:nativeCompile
 
 # Run the native binary
