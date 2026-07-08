@@ -7,7 +7,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
     sourceCompatibility = 17
     targetCompatibility = 17
@@ -96,7 +96,7 @@ graalvmNative {
             }
 
             javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(21)
+                languageVersion = JavaLanguageVersion.of(25)
                 vendor = JvmVendorSpec.matching("Oracle Corporation")
             }
             buildArgs.add('--enable-url-protocols=https')
