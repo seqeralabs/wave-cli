@@ -9,8 +9,16 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
     }
-    sourceCompatibility = 25
-    targetCompatibility = 25
+}
+
+// Profile A (per adr#51): build on the Java 25 toolchain but target Java 17.
+// Java sources use --release; Groovy ignores --release so it uses source/targetCompatibility.
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+}
+tasks.withType(GroovyCompile).configureEach {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
 repositories {
