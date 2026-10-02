@@ -361,7 +361,7 @@ class AppTest extends Specification {
         req.buildTemplate == TEMPLATE
 
         where:
-        TEMPLATE << ['conda/micromamba:v2', 'conda/micromamba:v3']
+        TEMPLATE << ['conda/micromamba:v2', 'conda/micromamba:v2-fast']
     }
 
     def 'should not allow dry-run and await' () {

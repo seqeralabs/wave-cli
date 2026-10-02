@@ -126,7 +126,7 @@ docker run $container bamtools --version
 Available build templates:
 - `conda/micromamba:v1` - Single-stage build using Micromamba 1.x
 - `conda/micromamba:v2` - Multi-stage build using Micromamba 2.x (default for Conda packages)
-- `conda/micromamba:v3` - Like `conda/micromamba:v2`, with the Conda environment split into multiple image layers grouped by package, each under 512 MB. Docker images only
+- `conda/micromamba:v2-fast` - Like `conda/micromamba:v2`, with the Conda environment split into multiple image layers grouped by package, each under 512 MB. Docker images only
 - `conda/pixi:v1` - Multi-stage build using Pixi package manager
 - `cran/installr:v1` - Build template for CRAN/R packages
 
