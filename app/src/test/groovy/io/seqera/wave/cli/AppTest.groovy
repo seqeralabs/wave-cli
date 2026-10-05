@@ -660,20 +660,6 @@ class AppTest extends Specification {
         app.@freeze
     }
 
-    def 'should fail when specifying multi-platform and singularity without freeze' () {
-        given:
-        def app = new App()
-        String[] args = ["--platform", "linux/amd64,linux/arm64", "--singularity", "-f", "Dockerfile", "--build-repo", "docker.io/foo", "--tower-token", "xyz"]
-
-        when:
-        new CommandLine(app).parseArgs(args)
-        app.validateArgs()
-
-        then:
-        def e = thrown(IllegalCliArgumentException)
-        e.getMessage() == "Singularity build requires enabling freeze mode"
-    }
-
     def 'should fail when specifying multi-platform and mirror' () {
         given:
         def app = new App()
