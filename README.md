@@ -1,6 +1,6 @@
 # Wave CLI
 
-> [!IMPORTANT]
+> [!NOTE]
 > This project has been merged into the [Wave repository](https://github.com/seqeralabs/wave) and is now developed in its
 > [`wave-cli`](https://github.com/seqeralabs/wave/tree/master/wave-cli) directory. This repository is no longer maintained.
 >
