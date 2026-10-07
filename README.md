@@ -1,5 +1,13 @@
 # Wave CLI
 
+> [!IMPORTANT]
+> This project has been merged into the [Wave repository](https://github.com/seqeralabs/wave) and is now developed in its
+> [`wave-cli`](https://github.com/seqeralabs/wave/tree/master/wave-cli) directory. This repository is no longer maintained.
+>
+> New releases are published on the [Wave releases page](https://github.com/seqeralabs/wave/releases?q=cli-v&expanded=true)
+> with `cli-v<VERSION>` tags. The Homebrew formula (`brew install seqeralabs/tap/wave-cli`) is unchanged.
+> Please open issues and pull requests in the [Wave repository](https://github.com/seqeralabs/wave).
+
 Command line tool for [Wave containers provisioning service](https://github.com/seqeralabs/wave).
 
 ### Summary 
